@@ -863,6 +863,7 @@ watch(() => parts.value.length, (newLength) => {
   display: none !important;
 }
 
+/* Desktop Table: Base row styles - Always active - FORCED REFRESH */
 .modern-table :deep(.ant-table-tbody > tr) {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
   border-radius: 12px !important;
@@ -901,31 +902,7 @@ watch(() => parts.value.length, (newLength) => {
   border-left-color: #667eea !important;
 }
 
-/* Remove default table borders */
-.modern-table :deep(.ant-table-tbody) {
-  border-spacing: 0 12px !important;
-}
-
-/* Mobile specific table spacing */
-@media (max-width: 768px) {
-  .modern-table :deep(.ant-table-tbody) {
-    border-spacing: 0 8px !important;
-  }
-  
-  .modern-table :deep(.ant-table-tbody > tr) {
-    margin-bottom: 8px !important;
-  }
-}
-
-.modern-table :deep(.ant-table-container) {
-  border: none !important;
-}
-
-.modern-table :deep(.ant-table-tbody > tr:nth-child(even)) {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
-}
-
-/* Quantity-based row colors */
+/* Desktop Table: Quantity-based row colors - Always active */
 .modern-table :deep(.quantity-row-red) {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
   border-color: #fca5a5 !important;
@@ -981,6 +958,32 @@ watch(() => parts.value.length, (newLength) => {
   border-color: #059669 !important;
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15) !important;
 }
+
+/* Desktop Table: Container and spacing - Always active */
+.modern-table :deep(.ant-table-tbody) {
+  border-spacing: 0 12px !important;
+}
+
+.modern-table :deep(.ant-table-container) {
+  border: none !important;
+}
+
+.modern-table :deep(.ant-table-tbody > tr:nth-child(even)) {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+/* Mobile specific table spacing */
+@media (max-width: 768px) {
+  .modern-table :deep(.ant-table-tbody) {
+    border-spacing: 0 8px !important;
+  }
+  
+  .modern-table :deep(.ant-table-tbody > tr) {
+    margin-bottom: 8px !important;
+  }
+}
+
+
 
 /* Table Cell Styles */
 .avatar-cell {
