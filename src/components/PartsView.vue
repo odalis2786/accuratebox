@@ -116,7 +116,9 @@
           showQuickJumper: true,
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} parts`,
         }"
-
+        :customRow="(record) => ({
+          class: `quantity-row-${getQuantityColor(getPartQuantity(record))}`
+        })"
         class="modern-table"
         size="middle"
       >
@@ -747,22 +749,25 @@ watch(() => parts.value.length, (newLength) => {
 
 .modern-table {
   border-radius: 8px;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: transparent;
+  box-shadow: none;
 }
 
 .modern-table :deep(.ant-table-container) {
   border-radius: 8px;
+  border: none !important;
 }
 
 .modern-table :deep(.ant-table-header) {
   background: white;
   border-radius: 8px 8px 0 0;
+  border: none !important;
 }
 
 .modern-table :deep(.ant-table-body) {
-  background: white;
+  background: transparent !important;
   border-radius: 0 0 8px 8px;
+  border: none !important;
 }
 
 .modern-table :deep(.ant-table-thead > tr > th) {
@@ -782,31 +787,112 @@ watch(() => parts.value.length, (newLength) => {
   display: none !important;
 }
 
-.modern-table :deep(.ant-table-tbody > tr > td) {
-  border-bottom: 1px solid #f0f2f5;
-  vertical-align: top;
-  padding: 16px 12px !important;
-}
-
 .modern-table :deep(.ant-table-tbody > tr) {
-  margin-bottom: 4px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  margin-bottom: 20px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
-.modern-table :deep(.ant-table-tbody > tr:hover > td) {
-  background: rgba(102, 126, 234, 0.04) !important;
+.modern-table :deep(.ant-table-tbody > tr > td) {
+  border-bottom: none !important;
+  vertical-align: middle !important;
+  padding: 20px 16px !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.modern-table :deep(.ant-table-tbody > tr > td:first-child) {
+  border-top-left-radius: 12px !important;
+  border-bottom-left-radius: 12px !important;
+  border-left: 4px solid #3b82f6 !important;
+}
+
+.modern-table :deep(.ant-table-tbody > tr > td:last-child) {
+  border-top-right-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+}
+
+.modern-table :deep(.ant-table-tbody > tr:hover) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+  border-color: #667eea !important;
+}
+
+.modern-table :deep(.ant-table-tbody > tr:hover > td:first-child) {
+  border-left-color: #667eea !important;
+}
+
+/* Remove default table borders */
+.modern-table :deep(.ant-table-tbody) {
+  border-spacing: 0 12px !important;
+}
+
+.modern-table :deep(.ant-table-container) {
+  border: none !important;
 }
 
 .modern-table :deep(.ant-table-tbody > tr:nth-child(even)) {
-  background: #fafcff;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
 }
 
-.modern-table :deep(.ant-table-tbody > tr:nth-child(even):hover) {
-  background: rgba(102, 126, 234, 0.04) !important;
+/* Quantity-based row colors */
+.modern-table :deep(.quantity-row-red) {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+  border-color: #fca5a5 !important;
 }
 
-/* Add spacing between table rows */
-.modern-table :deep(.ant-table-tbody) {
-  border-spacing: 0 4px;
+.modern-table :deep(.quantity-row-red > td:first-child) {
+  border-left-color: #ef4444 !important;
+}
+
+.modern-table :deep(.quantity-row-red:hover) {
+  border-color: #dc2626 !important;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15) !important;
+}
+
+.modern-table :deep(.quantity-row-orange) {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border-color: #fbbf24 !important;
+}
+
+.modern-table :deep(.quantity-row-orange > td:first-child) {
+  border-left-color: #f59e0b !important;
+}
+
+.modern-table :deep(.quantity-row-orange:hover) {
+  border-color: #d97706 !important;
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.15) !important;
+}
+
+.modern-table :deep(.quantity-row-blue) {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+  border-color: #93c5fd !important;
+}
+
+.modern-table :deep(.quantity-row-blue > td:first-child) {
+  border-left-color: #3b82f6 !important;
+}
+
+.modern-table :deep(.quantity-row-blue:hover) {
+  border-color: #2563eb !important;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
+}
+
+.modern-table :deep(.quantity-row-green) {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+  border-color: #86efac !important;
+}
+
+.modern-table :deep(.quantity-row-green > td:first-child) {
+  border-left-color: #10b981 !important;
+}
+
+.modern-table :deep(.quantity-row-green:hover) {
+  border-color: #059669 !important;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15) !important;
 }
 
 /* Table Cell Styles */
@@ -814,7 +900,7 @@ watch(() => parts.value.length, (newLength) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 0;
+  padding: 0;
 }
 
 .part-avatar {
