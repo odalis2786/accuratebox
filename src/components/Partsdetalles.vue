@@ -28,7 +28,8 @@
                 v-if="articulo.imageUrls && articulo.imageUrls.length" 
                 :src="articulo.imageUrls[0]" 
                 :size="120"
-                class="part-image"
+                class="part-image clickable-image"
+                @click="openImageModal(articulo.imageUrls[0], 0)"
               />
               <a-avatar 
                 v-else 
@@ -37,12 +38,24 @@
               >
                 <BoxPlotOutlined />
               </a-avatar>
+              <div v-if="articulo.imageUrls && articulo.imageUrls.length" class="zoom-indicator">
+                <EyeOutlined />
+              </div>
             </div>
             <div class="image-gallery" v-if="articulo.imageUrls && articulo.imageUrls.length > 1">
               <div class="gallery-item" v-for="(image, index) in articulo.imageUrls.slice(1, 4)" :key="index">
-                <a-avatar :src="image" :size="40" />
+                <a-avatar 
+                  :src="image" 
+                  :size="40" 
+                  class="gallery-thumbnail"
+                  @click="openImageModal(image, index + 1)"
+                />
               </div>
-              <div v-if="articulo.imageUrls.length > 4" class="more-images">
+              <div 
+                v-if="articulo.imageUrls.length > 4" 
+                class="more-images clickable-more"
+                @click="showAllImages"
+              >
                 +{{ articulo.imageUrls.length - 4 }}
               </div>
             </div>
@@ -271,6 +284,106 @@
       </div>
     </div>
   </a-modal>
+
+  <!-- Image Modal -->
+  <a-modal
+    v-model:visible="imageModalVisible"
+    :title="null"
+    :footer="null"
+    :width="800"
+    class="image-modal"
+    centered
+  >
+    <div class="image-modal-content">
+      <div class="image-header">
+        <h3>{{ articulo?.name || 'Part Image' }}</h3>
+        <div class="image-counter" v-if="articulo?.imageUrls?.length > 1">
+          {{ currentImageIndex + 1 }} / {{ articulo.imageUrls.length }}
+        </div>
+      </div>
+      
+      <div class="image-viewer">
+        <div class="image-container-modal">
+          <img 
+            :src="currentImage" 
+            :alt="articulo?.name || 'Part image'"
+            class="modal-image"
+            @load="onImageLoad"
+            @error="onImageError"
+          />
+          <div v-if="imageLoading" class="image-loading">
+            <a-spin size="large" />
+          </div>
+        </div>
+        
+        <!-- Navigation arrows for multiple images -->
+        <div v-if="articulo?.imageUrls?.length > 1" class="image-navigation">
+          <a-button 
+            type="text" 
+            class="nav-btn prev-btn"
+            @click="previousImage"
+            :disabled="currentImageIndex === 0"
+          >
+            <LeftOutlined />
+          </a-button>
+          
+          <a-button 
+            type="text" 
+            class="nav-btn next-btn"
+            @click="nextImage"
+            :disabled="currentImageIndex === articulo.imageUrls.length - 1"
+          >
+            <RightOutlined />
+          </a-button>
+        </div>
+      </div>
+      
+      <!-- Thumbnail strip for multiple images -->
+      <div v-if="articulo?.imageUrls?.length > 1" class="thumbnail-strip">
+        <div 
+          v-for="(image, index) in articulo.imageUrls" 
+          :key="index"
+          class="thumbnail-item"
+          :class="{ active: index === currentImageIndex }"
+          @click="goToImage(index)"
+        >
+          <img :src="image" :alt="`Image ${index + 1}`" class="thumbnail-image" />
+        </div>
+      </div>
+      
+      <div class="image-actions">
+        <a-button type="primary" @click="downloadImage" class="download-btn">
+          <DownloadOutlined /> Download
+        </a-button>
+        <a-button @click="closeImageModal" class="close-btn">
+          Close
+        </a-button>
+      </div>
+    </div>
+  </a-modal>
+
+  <!-- All Images Modal -->
+  <a-modal
+    v-model:visible="allImagesModalVisible"
+    title="All Images"
+    :footer="null"
+    :width="1000"
+    class="all-images-modal"
+  >
+    <div class="all-images-grid">
+      <div 
+        v-for="(image, index) in articulo?.imageUrls || []" 
+        :key="index"
+        class="grid-image-item"
+        @click="openImageModal(image, index)"
+      >
+        <img :src="image" :alt="`Image ${index + 1}`" class="grid-image" />
+        <div class="grid-image-overlay">
+          <EyeOutlined />
+        </div>
+      </div>
+    </div>
+  </a-modal>
 </template>
 
 <script setup>
@@ -289,6 +402,10 @@ import {
   IdcardOutlined,
   TagOutlined,
   FileTextOutlined,
+  EyeOutlined,
+  LeftOutlined,
+  RightOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons-vue";
 
 const toolsStore = useUserStore();
@@ -298,6 +415,13 @@ const modalAction = ref('increase');
 const quantityChange = ref(1);
 const comentario = ref('');
 const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
+
+// Image modal variables
+const imageModalVisible = ref(false);
+const allImagesModalVisible = ref(false);
+const currentImage = ref('');
+const currentImageIndex = ref(0);
+const imageLoading = ref(false);
 
 // Recupera la parte seleccionada desde el store
 const articulo = computed(() => toolsStore.PartsSeleccionado);
@@ -375,6 +499,69 @@ const handleOkPendiente = async () => {
 // Llama al método del store para actualizar el campo `model`
 const updateQuantity = async (delta) => {
   await toolsStore.updatePartModel(articulo.value.id, delta);
+};
+
+// Image modal functions
+const openImageModal = (imageUrl, index) => {
+  currentImage.value = imageUrl;
+  currentImageIndex.value = index;
+  imageModalVisible.value = true;
+  imageLoading.value = true;
+  allImagesModalVisible.value = false; // Close all images modal if open
+};
+
+const closeImageModal = () => {
+  imageModalVisible.value = false;
+  currentImage.value = '';
+  currentImageIndex.value = 0;
+  imageLoading.value = false;
+};
+
+const nextImage = () => {
+  if (articulo.value?.imageUrls && currentImageIndex.value < articulo.value.imageUrls.length - 1) {
+    currentImageIndex.value++;
+    currentImage.value = articulo.value.imageUrls[currentImageIndex.value];
+    imageLoading.value = true;
+  }
+};
+
+const previousImage = () => {
+  if (currentImageIndex.value > 0) {
+    currentImageIndex.value--;
+    currentImage.value = articulo.value.imageUrls[currentImageIndex.value];
+    imageLoading.value = true;
+  }
+};
+
+const goToImage = (index) => {
+  currentImageIndex.value = index;
+  currentImage.value = articulo.value.imageUrls[index];
+  imageLoading.value = true;
+};
+
+const onImageLoad = () => {
+  imageLoading.value = false;
+};
+
+const onImageError = () => {
+  imageLoading.value = false;
+  message.error('Failed to load image');
+};
+
+const downloadImage = () => {
+  if (currentImage.value) {
+    const link = document.createElement('a');
+    link.href = currentImage.value;
+    link.download = `${articulo.value?.name || 'part'}_image_${currentImageIndex.value + 1}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    message.success('Image download started');
+  }
+};
+
+const showAllImages = () => {
+  allImagesModalVisible.value = true;
 };
 </script>
 
@@ -479,7 +666,11 @@ const updateQuantity = async (delta) => {
   transition: all 0.3s ease;
 }
 
-.part-image:hover {
+.clickable-image {
+  cursor: pointer;
+}
+
+.clickable-image:hover {
   transform: scale(1.05);
   border-color: #667eea;
 }
@@ -488,6 +679,29 @@ const updateQuantity = async (delta) => {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-size: 48px;
+}
+
+.zoom-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.part-image:hover + .zoom-indicator,
+.zoom-indicator:hover {
+  opacity: 1;
 }
 
 .image-gallery {
@@ -500,8 +714,15 @@ const updateQuantity = async (delta) => {
   transition: transform 0.3s ease;
 }
 
-.gallery-item:hover {
+.gallery-thumbnail {
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.gallery-thumbnail:hover {
   transform: scale(1.1);
+  border-color: #667eea;
 }
 
 .more-images {
@@ -515,6 +736,17 @@ const updateQuantity = async (delta) => {
   font-size: 12px;
   font-weight: 600;
   color: #666;
+  transition: all 0.3s ease;
+}
+
+.clickable-more {
+  cursor: pointer;
+}
+
+.clickable-more:hover {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
 }
 
 /* Part Info Section */
@@ -915,6 +1147,282 @@ const updateQuantity = async (delta) => {
 
   .stat-item {
     min-width: 100%;
+  }
+}
+
+/* Image Modal Styles */
+.image-modal .ant-modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.image-modal .ant-modal-body {
+  padding: 0;
+}
+
+.image-modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.image-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fafbfc;
+}
+
+.image-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.image-counter {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.image-viewer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  min-height: 400px;
+}
+
+.image-container-modal {
+  position: relative;
+  max-width: 100%;
+  max-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.image-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.image-navigation {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  pointer-events: none;
+}
+
+.nav-btn {
+  pointer-events: all;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.8);
+  transform: scale(1.1);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.thumbnail-strip {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+  background: #fafbfc;
+  border-top: 1px solid #f0f2f5;
+  overflow-x: auto;
+  max-height: 80px;
+}
+
+.thumbnail-item {
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.thumbnail-item.active {
+  border-color: #667eea;
+  transform: scale(1.1);
+}
+
+.thumbnail-item:hover {
+  border-color: #764ba2;
+  transform: scale(1.05);
+}
+
+.thumbnail-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  display: block;
+}
+
+.image-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #f0f2f5;
+  background: #fafbfc;
+  justify-content: flex-end;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+}
+
+.close-btn {
+  border: 1px solid #d1d5db;
+  background: white;
+}
+
+/* All Images Modal */
+.all-images-modal .ant-modal-content {
+  border-radius: 16px;
+}
+
+.all-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.grid-image-item {
+  position: relative;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  transition: transform 0.3s ease;
+}
+
+.grid-image-item:hover {
+  transform: scale(1.05);
+}
+
+.grid-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.grid-image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.grid-image-item:hover .grid-image-overlay {
+  opacity: 1;
+}
+
+/* Mobile responsiveness for image modals */
+@media (max-width: 768px) {
+  .image-modal .ant-modal {
+    margin: 16px;
+    max-width: calc(100vw - 32px);
+  }
+  
+  .modal-image {
+    max-height: 50vh;
+  }
+  
+  .image-header {
+    padding: 16px 20px;
+  }
+  
+  .image-header h3 {
+    font-size: 16px;
+  }
+  
+  .thumbnail-strip {
+    padding: 12px 20px;
+  }
+  
+  .thumbnail-image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .image-actions {
+    padding: 16px 20px;
+  }
+  
+  .all-images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .all-images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  
+  .thumbnail-image {
+    width: 40px;
+    height: 40px;
   }
 }
 </style>
