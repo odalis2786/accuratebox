@@ -1,0 +1,175 @@
+.forward{
+    display: flex;
+    position: absolute;
+    right: 30px;
+    bottom: 10px;
+    cursor: pointer;
+   
+}
+.backward{
+    @extend .forward;
+    right: 110px;
+}
+ 
+
+.backward:hover{
+   position: absolute;
+    
+    color:blue;
+    font-size: 1rem;
+    background-color: white;
+    width: 35px;
+    height: 35px;
+  right: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-style: solid;
+    border-radius: 50%;
+  border-width: 1px;
+    border-color: blue;
+     
+}
+ 
+.forward:hover{
+    @extend .forward;
+     
+    color:blue;
+    font-size: 1rem;
+    background-color: white;
+    width: 35px;
+    height: 35px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-style: solid;
+    border-radius: 50%;
+  border-width: 1px;
+    border-color: blue;
+     
+}
+
+
+
+
+ .bi-play-fill{
+position: absolute;
+    color:black
+ }
+
+ .bi-pause-fill{
+    @extend .bi-play-fill;
+ }
+  .progress-bar {
+  position: absolute;
+  right: 30px;
+  bottom: 10px;
+  right: 20px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    right: 60px;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+
+   
+  .progress-bar::before {
+    counter-reset: percentage var(--progress-value);
+    content: counter(percentage) '%';
+  }
+   
+  .css {
+    background: 
+      radial-gradient(closest-side, white 79%, transparent 80% 100%, white 0),
+      conic-gradient(rgb(233, 229, 231) calc(var(--progress-value) * 1%), rgb(8, 8, 8) 0);
+     
+      animation: css-progress 8s ;
+  }
+  
+  .slidein {
+    background: 
+      radial-gradient(closest-side, white 79%, transparent 80% 100%, white 0),
+      conic-gradient(rgb(233, 229, 231) calc(var(--progress-value) * 1%), rgb(8, 8, 8) 0);
+    animation: none;
+  }
+   
+   
+  
+  progress {
+    visibility: hidden;
+    width: 0;
+    height: 0;
+  }
+
+  @property --progress-value {
+    syntax: '<integer>';
+    inherits: false;
+    initial-value: 0;
+  }
+  
+  
+  
+  @keyframes css-progress {
+    to { --progress-value: 100; }
+  }
+  
+
+   .btn-primary{
+    position: absolute;
+    bottom: 70px;  
+   }
+
+.inventario{
+  animation-duration: 3s;
+  animation-name: inventario;
+  left: 20px;
+  border-radius: 50px;
+}
+#h2{
+  position: absolute;
+  animation-duration: 3s;
+  animation-name: h2;
+  bottom: 120px; 
+  left: 20px;
+  color:white;
+  text-shadow: 6px 6px 10px #000000;
+ 
+}
+
+
+
+
+@keyframes h2{
+
+  from{
+    left: 200px;
+  }
+  
+  to{
+    left: 20px;
+  }
+  
+     }
+
+
+
+
+
+
+   @keyframes inventario{
+
+from{
+  left: -100px;
+}
+
+to{
+  left: 20px;
+}
+
+   }

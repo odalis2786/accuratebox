@@ -1,0 +1,13 @@
+$grid-breakpoints: (
+  xs: 0,
+  sm: 579px,  // Tu valor personalizado aquí
+  md: 768px,  // Tu valor personalizado aquí
+  lg: 1024px  // Tu valor personalizado aquí
+);
+
+// Sobrescribe los anchos máximos de los contenedores
+$container-max-widths: (
+  sm: 500px,  // Tu valor personalizado aquí
+  md: 720px,  // Tu valor personalizado aquí
+  lg: 960px   // Tu valor personalizado aquí
+);

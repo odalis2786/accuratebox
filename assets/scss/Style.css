@@ -1,0 +1,29 @@
+@charset "UTF-8";
+.homecontainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+}
+
+.linea {
+  width: 100%;
+  border: 0.4px solid black;
+}
+
+.nav, .nav2, .contenido {
+  padding-left: 0.5rem !important;
+  padding-top: 2rem !important;
+}
+
+.nav2 {
+  border-radius: 20px;
+  height: 80vh;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Añade una sombra suave */
+}
+
+.contenido {
+  height: 100vh;
+  border-radius: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Añade una sombra suave */
+}/*# sourceMappingURL=Style.css.map */

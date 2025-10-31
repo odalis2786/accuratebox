@@ -1,0 +1,25 @@
+ 
+ 
+
+.fade-main-img{
+ position: relative;
+   max-width: 100%;
+   height: auto;
+  
+}
+ 
+ .img{
+   
+    @extend .fade-main-img;
+    
+ }
+
+ .fade-botton{
+  position: relative;
+    bottom: 10px; /* Ajusta la posición vertical según tus necesidades */
+    left: 0px; /* Ajusta la posición horizontal según tus necesidades */
+    max-width: 100%;
+    height: auto;
+    
+ }
+
