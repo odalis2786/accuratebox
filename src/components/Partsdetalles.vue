@@ -14,6 +14,19 @@
           <BoxPlotOutlined class="title-icon" />
           <h1>Part Details</h1>
         </div>
+        <div class="header-actions">
+          <a-button v-if="!isEditMode" type="primary" @click="enterEditMode" class="edit-button">
+            <EditOutlined />Edit
+          </a-button>
+          <template v-else>
+            <a-button type="primary" @click="saveChanges" :disabled="!hasChanges" class="save-button">
+              <SaveOutlined />Save
+            </a-button>
+            <a-button @click="cancelEdit" class="cancel-button">
+              <CloseOutlined />Cancel
+            </a-button>
+          </template>
+        </div>
       </div>
     </div>
 
@@ -25,11 +38,11 @@
           <div class="part-image-section">
             <div class="image-container">
               <a-avatar 
-                v-if="articulo.imageUrls && articulo.imageUrls.length" 
-                :src="articulo.imageUrls[0]" 
+                v-if="(isEditMode ? editableFields.imageUrls : articulo.imageUrls) && (isEditMode ? editableFields.imageUrls : articulo.imageUrls).length" 
+                :src="isEditMode ? editableFields.imageUrls[0] : articulo.imageUrls[0]" 
                 :size="120"
                 class="part-image clickable-image"
-                @click="openImageModal(articulo.imageUrls[0], 0)"
+                @click="!isEditMode && openImageModal(articulo.imageUrls[0], 0)"
               />
               <a-avatar 
                 v-else 
@@ -38,9 +51,26 @@
               >
                 <BoxPlotOutlined />
               </a-avatar>
-              <div v-if="articulo.imageUrls && articulo.imageUrls.length" class="zoom-indicator">
+              <div v-if="articulo.imageUrls && articulo.imageUrls.length && !isEditMode" class="zoom-indicator">
                 <EyeOutlined />
               </div>
+              <div v-if="isEditMode" class="image-edit-overlay">
+                <a-button 
+                  type="primary" 
+                  shape="circle" 
+                  @click="triggerImageUpload"
+                  class="image-edit-button"
+                >
+                  <CameraOutlined />
+                </a-button>
+              </div>
+              <input 
+                ref="imageUploadInput"
+                type="file"
+                accept="image/*"
+                @change="handleImageUpload"
+                style="display: none"
+              />
             </div>
             <div class="image-gallery" v-if="articulo.imageUrls && articulo.imageUrls.length > 1">
               <div class="gallery-item" v-for="(image, index) in articulo.imageUrls.slice(1, 4)" :key="index">
@@ -63,13 +93,34 @@
           
           <div class="part-info-section">
             <div class="part-header">
-              <h2 class="part-name">{{ articulo.name || 'Unknown Part' }}</h2>
-              <a-tag class="part-id-tag">ID: {{ articulo.id }}</a-tag>
+              <template v-if="!isEditMode">
+                <h2 class="part-name">{{ articulo.name || 'Unknown Part' }}</h2>
+              </template>
+              <template v-else>
+                <a-input 
+                  v-model:value="editableFields.name"
+                  @change="onFieldChange"
+                  placeholder="Part name"
+                  class="editable-name"
+                  size="large"
+                />
+              </template>
             </div>
             
-            <p class="part-description">
-              {{ articulo.desc || 'No description available' }}
-            </p>
+            <template v-if="!isEditMode">
+              <p class="part-description">
+                {{ articulo.desc || 'No description available' }}
+              </p>
+            </template>
+            <template v-else>
+              <a-textarea 
+                v-model:value="editableFields.desc"
+                @change="onFieldChange"
+                placeholder="Part description"
+                class="editable-description"
+                :rows="3"
+              />
+            </template>
             
             <div class="quick-stats">
               <div class="stat-item quantity-stat">
@@ -159,7 +210,18 @@
               <TagOutlined class="detail-icon" />
               Part Name
             </div>
-            <div class="detail-value">{{ articulo.name || 'N/A' }}</div>
+            <div class="detail-value">
+              <template v-if="!isEditMode">
+                {{ articulo.name || 'N/A' }}
+              </template>
+              <a-input 
+                v-else
+                v-model:value="editableFields.name"
+                @change="onFieldChange"
+                placeholder="Enter part name"
+                class="editable-field"
+              />
+            </div>
           </div>
           
           <div class="detail-row">
@@ -167,7 +229,18 @@
               <EnvironmentOutlined class="detail-icon" />
               Location
             </div>
-            <div class="detail-value">{{ articulo.location || 'Not specified' }}</div>
+            <div class="detail-value">
+              <template v-if="!isEditMode">
+                {{ articulo.location || 'Not specified' }}
+              </template>
+              <a-input 
+                v-else
+                v-model:value="editableFields.location"
+                @change="onFieldChange"
+                placeholder="Enter location"
+                class="editable-field"
+              />
+            </div>
           </div>
           
           <div class="detail-row">
@@ -175,7 +248,19 @@
               <FileTextOutlined class="detail-icon" />
               Description
             </div>
-            <div class="detail-value description-text">{{ articulo.desc || 'No description available' }}</div>
+            <div class="detail-value">
+              <template v-if="!isEditMode">
+                <span class="description-text">{{ articulo.desc || 'No description available' }}</span>
+              </template>
+              <a-textarea 
+                v-else
+                v-model:value="editableFields.desc"
+                @change="onFieldChange"
+                placeholder="Enter description"
+                class="editable-field"
+                :rows="2"
+              />
+            </div>
           </div>
           
           <div class="detail-row">
@@ -183,7 +268,18 @@
               <SettingOutlined class="detail-icon" />
               Machine
             </div>
-            <div class="detail-value">{{ articulo.machine || 'General' }}</div>
+            <div class="detail-value">
+              <template v-if="!isEditMode">
+                {{ articulo.machine || 'General' }}
+              </template>
+              <a-input 
+                v-else
+                v-model:value="editableFields.machine"
+                @change="onFieldChange"
+                placeholder="Enter machine name"
+                class="editable-field"
+              />
+            </div>
           </div>
           
           <div class="detail-row">
@@ -469,6 +565,12 @@ import {
   MoreOutlined,
   ToolOutlined,
   DesktopOutlined,
+  EditOutlined,
+  SaveOutlined,
+  CloseOutlined,
+  CheckOutlined,
+  CameraOutlined,
+  UploadOutlined,
 } from "@ant-design/icons-vue";
 
 const toolsStore = useUserStore();
@@ -496,6 +598,18 @@ const updateScreenSize = () => {
 
 // Navigation state (same as home.vue)
 const currentSubMenu = ref(null);
+
+// Edit mode state
+const isEditMode = ref(false);
+const editableFields = ref({
+  name: '',
+  desc: '',
+  location: '',
+  machine: ''
+});
+
+// Track if changes were made
+const hasChanges = ref(false);
 
 // Recupera la parte seleccionada desde el store
 const articulo = computed(() => {
@@ -592,6 +706,120 @@ const handleOkPendiente = async () => {
 // Llama al método del store para actualizar el campo `model`
 const updateQuantity = async (delta) => {
   await toolsStore.updatePartModel(articulo.value.id, delta);
+};
+
+// Edit mode functions
+const enterEditMode = () => {
+  isEditMode.value = true;
+  editableFields.value = {
+    name: articulo.value.name || '',
+    desc: articulo.value.desc || '',
+    location: articulo.value.location || '',
+    machine: articulo.value.machine || '',
+    imageUrls: articulo.value.imageUrls ? [...articulo.value.imageUrls] : []
+  };
+  hasChanges.value = false;
+};
+
+const cancelEdit = () => {
+  if (hasChanges.value) {
+    Modal.confirm({
+      title: 'Discard Changes?',
+      content: 'You have unsaved changes. Are you sure you want to discard them?',
+      okText: 'Discard',
+      okType: 'danger',
+      cancelText: 'Continue Editing',
+      onOk() {
+        isEditMode.value = false;
+        hasChanges.value = false;
+      }
+    });
+  } else {
+    isEditMode.value = false;
+    hasChanges.value = false;
+  }
+};
+
+const saveChanges = async () => {
+  try {
+    await toolsStore.updatePartFields(articulo.value.id, editableFields.value);
+    
+    message.success('Part details updated successfully');
+    isEditMode.value = false;
+    hasChanges.value = false;
+    
+    // Refresh the part data
+    await toolsStore.fetchParts();
+  } catch (error) {
+    console.error('Error updating part:', error);
+    message.error('Failed to update part details');
+  }
+};
+
+// Track changes in editable fields
+const onFieldChange = () => {
+  hasChanges.value = true;
+};
+
+// Image upload functions
+const imageUploadInput = ref(null);
+
+const triggerImageUpload = () => {
+  imageUploadInput.value?.click();
+};
+
+const handleImageUpload = async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    message.error('Please select a valid image file');
+    return;
+  }
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    message.error('Image size should be less than 5MB');
+    return;
+  }
+
+  try {
+    message.loading({ content: 'Uploading image...', key: 'imageUpload' });
+
+    // Convert file to base64 or handle upload to Firebase Storage
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageDataUrl = e.target.result;
+      
+      // Update the editable fields with the new image
+      if (!editableFields.value.imageUrls) {
+        editableFields.value.imageUrls = [];
+      }
+      
+      // Replace the first image or add new one
+      if (editableFields.value.imageUrls.length > 0) {
+        editableFields.value.imageUrls[0] = imageDataUrl;
+      } else {
+        editableFields.value.imageUrls.push(imageDataUrl);
+      }
+      
+      onFieldChange();
+      message.success({ content: 'Image uploaded successfully', key: 'imageUpload' });
+    };
+    
+    reader.onerror = () => {
+      message.error({ content: 'Failed to upload image', key: 'imageUpload' });
+    };
+    
+    reader.readAsDataURL(file);
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    message.error({ content: 'Failed to upload image', key: 'imageUpload' });
+  }
+
+  // Reset the input
+  event.target.value = '';
 };
 
 // Image modal functions
@@ -788,7 +1016,13 @@ onUnmounted(() => {
   padding: 20px 24px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 20px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .back-btn {
@@ -800,6 +1034,57 @@ onUnmounted(() => {
 .back-btn:hover {
   color: #764ba2;
   transform: translateX(-2px);
+}
+
+.edit-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  height: 40px;
+  padding: 0 16px;
+  transition: all 0.3s ease;
+}
+
+.edit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.save-button {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  height: 40px;
+  padding: 0 16px;
+  transition: all 0.3s ease;
+}
+
+.save-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+}
+
+.save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  font-weight: 500;
+  height: 40px;
+  padding: 0 16px;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+  transform: translateY(-2px);
 }
 
 .page-title {
@@ -864,6 +1149,37 @@ onUnmounted(() => {
   border: 4px solid #f0f2f5;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
+}
+
+.image-edit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.image-container:hover .image-edit-overlay {
+  opacity: 1;
+}
+
+.image-edit-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.image-edit-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
 .clickable-image {
@@ -985,6 +1301,42 @@ onUnmounted(() => {
   color: #6b7280;
   line-height: 1.6;
   margin: 0;
+}
+
+.editable-name {
+  font-size: 32px;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.editable-name:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.editable-description {
+  font-size: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  margin: 16px 0 24px 0;
+}
+
+.editable-description:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.editable-field {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.editable-field:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 /* Quick Stats */

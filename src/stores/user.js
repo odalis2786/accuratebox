@@ -85,6 +85,30 @@ export const useUserStore = defineStore("userStore", {
         console.error("Error actualizando el campo `model`:", error);
       }
     },
+    
+    async updatePartFields(partId, fields) {
+      try {
+        // Update locally in selected part
+        if (this.PartsSeleccionado && this.PartsSeleccionado.id === partId) {
+          Object.assign(this.PartsSeleccionado, fields);
+        }
+
+        // Update locally in parts list
+        const partInList = this.parts.find((p) => p.id === partId);
+        if (partInList) {
+          Object.assign(partInList, fields);
+        }
+
+        // Update in Firestore
+        const partRef = doc(db, "parts", partId);
+        await updateDoc(partRef, fields);
+
+        console.log("Part fields updated successfully:", fields);
+      } catch (error) {
+        console.error("Error updating part fields:", error);
+        throw error;
+      }
+    },
  
 
 
