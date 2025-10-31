@@ -381,20 +381,61 @@
     </div>
   </a-modal>
 
-  <!-- Mobile Navigation Bar (same as home.vue) -->
-  <div v-if="!isLargeScreen">
-    <div class="floating-menu">
-      <a-button type="link" @click="toggleSubMenu('shop')">
-        <ShopOutlined />
-      </a-button>
-      <a-button type="link" @click="LogoOut()">
-        <LogoutOutlined />
-      </a-button>
+  <!-- Modern Mobile Navigation Bar -->
+  <div v-if="!isLargeScreen" class="mobile-nav-container">
+    <!-- Main Navigation -->
+    <div class="modern-floating-menu">
+      <div class="nav-item" @click="goBack" :class="{ active: false }">
+        <div class="nav-icon">
+          <ArrowLeftOutlined />
+        </div>
+        <span class="nav-label">Back</span>
+      </div>
+      
+      <div class="nav-item" @click="handleMenu('5')" :class="{ active: false }">
+        <div class="nav-icon">
+          <PlusOutlined />
+        </div>
+        <span class="nav-label">Add Parts</span>
+      </div>
+      
+      <div class="nav-item center-item" @click="handleMenu('6')" :class="{ active: true }">
+        <div class="nav-icon-center">
+          <BoxPlotOutlined />
+        </div>
+      </div>
+      
+      <div class="nav-item" @click="toggleSubMenu('more')" :class="{ active: currentSubMenu === 'more' }">
+        <div class="nav-icon">
+          <MoreOutlined />
+        </div>
+        <span class="nav-label">More</span>
+      </div>
+      
+      <div class="nav-item" @click="LogoOut()" :class="{ active: false }">
+        <div class="nav-icon">
+          <LogoutOutlined />
+        </div>
+        <span class="nav-label">Logout</span>
+      </div>
     </div>
     
-    <div v-if="currentSubMenu === 'shop'" class="submenu">
-      <a-button type="link" @click="() => { console.log('Parts Entry button clicked'); handleMenu('5'); }">Parts Entry</a-button>
-      <a-button type="link" @click="() => { console.log('Parts View button clicked'); handleMenu('6'); }">Parts View</a-button>
+    <!-- Expanded Menu -->
+    <div v-if="currentSubMenu === 'more'" class="modern-submenu">
+      <div class="submenu-content">
+        <div class="submenu-item" @click="handleMenu('3')">
+          <ToolOutlined />
+          <span>Tools Entry</span>
+        </div>
+        <div class="submenu-item" @click="handleMenu('4')">
+          <EyeOutlined />
+          <span>Tools View</span>
+        </div>
+        <div class="submenu-item" @click="handleMenu('1')">
+          <SettingOutlined />
+          <span>Settings</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -422,6 +463,8 @@ import {
   DownloadOutlined,
   ShopOutlined,
   LogoutOutlined,
+  MoreOutlined,
+  ToolOutlined,
 } from "@ant-design/icons-vue";
 
 const toolsStore = useUserStore();
@@ -1554,31 +1597,255 @@ onUnmounted(() => {
   }
 }
 
-/* Mobile Navigation Bar (same styles as home.vue) */
-.floating-menu {
+/* Modern Mobile Navigation Bar */
+.mobile-nav-container {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
-  background: #fff;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  right: 0;
   z-index: 9999;
 }
 
-.submenu {
-  position: fixed;
-  bottom: 50px;
-  left: 0;
-  width: 100%;
-  background: #fff;
+.modern-floating-menu {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 25px 25px 0 0;
+  padding: 15px 20px 25px;
   display: flex;
   justify-content: space-around;
-  padding: 10px 0;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 9998;
+  align-items: flex-end;
+  box-shadow: 0 -10px 30px rgba(102, 126, 234, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+}
+
+.modern-floating-menu::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  padding: 8px 12px;
+  border-radius: 20px;
+  position: relative;
+  min-width: 60px;
+}
+
+.nav-item:not(.center-item):hover {
+  transform: translateY(-5px) scale(1.1);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-item.active:not(.center-item) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-3px);
+}
+
+.nav-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
+  margin-bottom: 4px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-item:hover .nav-icon {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.nav-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.nav-item:hover .nav-label {
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Center Item (Special Featured Button) */
+.center-item {
+  transform: translateY(-20px);
+  z-index: 2;
+}
+
+.center-item .nav-icon-center {
+  width: 65px;
+  height: 65px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+  box-shadow: 0 10px 25px rgba(238, 90, 36, 0.4);
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+}
+
+.center-item .nav-icon-center::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24, #ff6b6b);
+  z-index: -1;
+  animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.center-item:hover .nav-icon-center {
+  transform: scale(1.15) rotate(10deg);
+  box-shadow: 0 15px 35px rgba(238, 90, 36, 0.6);
+}
+
+.center-item:active .nav-icon-center {
+  transform: scale(0.95);
+}
+
+/* Modern Submenu */
+.modern-submenu {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px 20px 0 0;
+  margin-bottom: -1px;
+  padding: 20px;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.submenu-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 15px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.submenu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 10px;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.submenu-item:hover {
+  transform: translateY(-3px) scale(1.05);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.submenu-item span {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+  text-align: center;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.submenu-item:hover span {
+  color: white;
+}
+
+.submenu-item .anticon {
+  font-size: 20px;
+  color: #667eea;
+  transition: all 0.3s ease;
+}
+
+.submenu-item:hover .anticon {
+  color: white;
+  transform: scale(1.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .modern-floating-menu {
+    padding: 12px 15px 20px;
+  }
+  
+  .nav-item {
+    min-width: 50px;
+    padding: 6px 8px;
+  }
+  
+  .nav-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+  
+  .nav-label {
+    font-size: 10px;
+  }
+  
+  .center-item .nav-icon-center {
+    width: 55px;
+    height: 55px;
+    font-size: 24px;
+  }
+  
+  .center-item {
+    transform: translateY(-15px);
+  }
+  
+  .submenu-content {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+  }
+  
+  .submenu-item {
+    padding: 12px 8px;
+  }
 }
 
 /* Add padding to content to account for mobile nav */
