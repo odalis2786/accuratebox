@@ -65,9 +65,15 @@ export const useUserStore = defineStore("userStore", {
         const newModel = (part.model || 0) + delta;
         if (newModel < 0) return; // No permite cantidades negativas
 
-        // Actualiza localmente
-        if (part === this.PartsSeleccionado) {
+        // Actualiza localmente en la parte seleccionada
+        if (this.PartsSeleccionado && this.PartsSeleccionado.id === partId) {
           this.PartsSeleccionado.model = newModel;
+        }
+
+        // Actualiza localmente en la lista de parts
+        const partInList = this.parts.find((p) => p.id === partId);
+        if (partInList) {
+          partInList.model = newModel;
         }
 
         // Actualiza en Firestore

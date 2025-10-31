@@ -8,7 +8,7 @@
             <DatabaseOutlined class="title-icon" />
             Parts Inventory
           </h1>
-          <p class="page-subtitle">Manage and track all parts in your warehouse</p>
+          <p class="page-subtitle">Manage and track all parts in your shop</p>
         </div>
         
         <!-- Statistics Cards -->
@@ -86,27 +86,7 @@
           </a-select>
         </a-col>
         
-        <a-col :xs="24" :sm="24" :md="10">
-          <div class="header-actions">
-            <a-button 
-              @click="refreshData" 
-              :loading="toolsStore.loadingUser"
-              size="large"
-              class="refresh-btn"
-            >
-              <ReloadOutlined /> Refresh
-            </a-button>
-            
-            <a-button 
-              type="primary" 
-              size="large"
-              class="add-part-btn"
-              @click="addNewPart"
-            >
-              <PlusOutlined /> Add New Part
-            </a-button>
-          </div>
-        </a-col>
+        
       </a-row>
     </a-card>
 
@@ -151,10 +131,10 @@
                   <AppstoreOutlined class="detail-icon quantity-icon" />
                   <span class="detail-label">Qty:</span>
                   <a-tag 
-                    :color="getQuantityColor(record.cuantiti)"
+                    :color="getQuantityColor(getPartQuantity(record))"
                     class="quantity-tag-inline"
                   >
-                    {{ record.cuantiti || 0 }}
+                    {{ getPartQuantity(record) }}
                   </a-tag>
                 </div>
                 <div class="detail-item">
@@ -259,7 +239,7 @@ const totalParts = computed(() => parts.value.length);
 
 const totalQuantity = computed(() => {
   return parts.value.reduce((total, part) => {
-    return total + (parseInt(part.cuantiti) || 0);
+    return total + (parseInt(getPartQuantity(part)) || 0);
   }, 0);
 });
 
@@ -310,6 +290,12 @@ const filteredParts = computed(() => {
 });
 
 // Methods
+// Helper function to get quantity from part (handles both model and cuantiti fields)
+const getPartQuantity = (part) => {
+  // Prioritize 'model' field, fallback to 'cuantiti' for backwards compatibility
+  return part.model !== undefined ? part.model : (part.cuantiti || 0);
+};
+
 const getQuantityColor = (quantity) => {
   const qty = parseInt(quantity) || 0;
   if (qty === 0) return 'red';
@@ -341,6 +327,10 @@ const addNewPart = () => {
 };
 
 const viewDetails = (part) => {
+  console.log("Original part data:", part);
+  console.log("Part model field:", part.model);
+  console.log("Part cuantiti field:", part.cuantiti);
+  
   toolsStore.seleccionarParts(part);
   console.log("Viewing details for:", part);
   router.push({ name: "detalles" }); // Adjust route name as needed
@@ -360,10 +350,16 @@ onMounted(async () => {
     toolsStore.PartsSeleccionado = null;
     
     await toolsStore.fetchParts();
+    console.log("Parts loaded:", toolsStore.parts);
   } catch (error) {
     message.error('Failed to load parts data');
   }
 });
+
+// Watch for changes in parts data to ensure reactivity
+watch(() => toolsStore.parts, (newParts) => {
+  console.log("Parts data changed:", newParts);
+}, { deep: true });
 
 // Watch for changes in parts data to update stats
 watch(() => parts.value.length, (newLength) => {

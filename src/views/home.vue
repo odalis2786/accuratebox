@@ -47,12 +47,7 @@
                 <span>Shop</span>
               </span>
             </template>
-            <a-menu-item key="3" @click="handleMenu('3')"
-              >Tools Entry</a-menu-item
-            >
-            <a-menu-item key="4" @click="handleMenu('4')"
-              >Tools View</a-menu-item
-            >
+           
             <a-menu-item key="5" @click="handleMenu('5')"
               >Parts Entry</a-menu-item
             >
@@ -191,29 +186,20 @@
         <!-- Expanded Menu -->
         <div v-if="currentSubMenu === 'more'" class="modern-submenu">
           <div class="submenu-content">
-            <div class="submenu-item" @click="handleMenu('3')">
-              <ToolOutlined />
-              <span>Tools Entry</span>
-            </div>
-            <div class="submenu-item" @click="handleMenu('4')">
-              <EyeOutlined />
-              <span>Tools View</span>
-            </div>
-            <div class="submenu-item" @click="handleMenu('7')" v-if="userStore.userData.position === 'Admin'">
-              <FileAddOutlined />
-              <span>Work Order</span>
-            </div>
-            <div class="submenu-item" @click="handleMenu('8')">
-              <UnorderedListOutlined />
-              <span>Work View</span>
-            </div>
-            <div class="submenu-item" @click="handleMenu('16')">
+            <div class="submenu-item" @click="toggleSubMenu('machines')" v-if="currentSubMenu !== 'machines'">
               <DesktopOutlined />
               <span>Machines</span>
             </div>
-            <div class="submenu-item" @click="handleMenu('17')" v-if="isMenuItemVisible">
-              <SlackOutlined />
-              <span>Retarder</span>
+            <!-- Machine Options -->
+            <div v-if="currentSubMenu === 'machines'" class="machines-submenu">
+              <div class="submenu-item" @click="handleMenu('13')" v-if="userStore.userData.position === 'Admin'">
+                <PlusOutlined />
+                <span>Add Machine</span>
+              </div>
+              <div class="submenu-item" @click="handleMenu('14')">
+                <MinusOutlined />
+                <span>Delete Machine</span>
+              </div>
             </div>
           </div>
         </div>
@@ -236,11 +222,9 @@ import {
   UnorderedListOutlined,
   SettingOutlined,
   PlusOutlined,
+  MinusOutlined,
   BoxPlotOutlined,
   MoreOutlined,
-  ToolOutlined,
-  EyeOutlined,
-  FileAddOutlined,
 } from "@ant-design/icons-vue";
 import Setting from "../components/SettinsComponent.vue";
 import Entry from "../components/Entry.vue";
@@ -471,7 +455,16 @@ const handleMenu = (key) => {
 const currentSubMenu = ref(null);
 
 const toggleSubMenu = (menu) => {
-  currentSubMenu.value = currentSubMenu.value === menu ? null : menu;
+  if (menu === 'machines' && currentSubMenu.value === 'more') {
+    // Si estamos en el menú 'more' y hacemos clic en 'machines', mostramos las opciones de máquinas
+    currentSubMenu.value = 'machines';
+  } else if (currentSubMenu.value === menu) {
+    // Si el menú actual es el mismo, lo cerramos
+    currentSubMenu.value = null;
+  } else {
+    // Abrimos el nuevo menú
+    currentSubMenu.value = menu;
+  }
 };
 </script>
 
@@ -718,6 +711,24 @@ const toggleSubMenu = (menu) => {
 .submenu-item:hover .anticon {
   color: white;
   transform: scale(1.2);
+}
+
+/* Machines Submenu */
+.machines-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  grid-column: 1 / -1; /* Ocupa todo el ancho del grid */
+}
+
+.machines-submenu .submenu-item {
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.machines-submenu .submenu-item:hover {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
 }
 
 /* Responsive adjustments */

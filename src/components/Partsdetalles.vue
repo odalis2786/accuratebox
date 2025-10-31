@@ -78,7 +78,7 @@
                 </div>
                 <div class="stat-info">
                   <div class="stat-label">Current Stock</div>
-                  <div class="stat-value">{{ articulo.model || 0 }} pieces</div>
+                  <div class="stat-value">{{ getPartQuantity(articulo) }} pieces</div>
                 </div>
               </div>
               
@@ -113,10 +113,10 @@
           <div class="current-quantity">
             <span class="quantity-label">Current Quantity:</span>
             <a-tag 
-              :color="getQuantityColor(articulo.model)"
+              :color="getQuantityColor(getPartQuantity(articulo))"
               class="quantity-tag"
             >
-              {{ articulo.model || 0 }} pcs
+              {{ getPartQuantity(articulo) }} pcs
             </a-tag>
           </div>
         </div>
@@ -127,7 +127,7 @@
             size="large"
             class="decrease-btn"
             @click="showModal('decrease')"
-            :disabled="articulo.model <= 0"
+            :disabled="getPartQuantity(articulo) <= 0"
           >
             <MinusOutlined /> Remove Stock
           </a-button>
@@ -193,10 +193,10 @@
             </div>
             <div class="detail-value">
               <a-tag 
-                :color="getQuantityColor(articulo.model)"
+                :color="getQuantityColor(getPartQuantity(articulo))"
                 class="detail-quantity-tag"
               >
-                {{ articulo.model || 0 }} pieces
+                {{ getPartQuantity(articulo) }} pieces
               </a-tag>
             </div>
           </div>
@@ -262,7 +262,7 @@
             <a-input-number
               v-model:value="quantityChange"
               :min="1"
-              :max="modalAction === 'decrease' ? articulo?.model : 9999"
+              :max="modalAction === 'decrease' ? getPartQuantity(articulo) : 9999"
               size="large"
               placeholder="Enter quantity"
               style="width: 100%"
@@ -423,17 +423,20 @@
     <!-- Expanded Menu -->
     <div v-if="currentSubMenu === 'more'" class="modern-submenu">
       <div class="submenu-content">
-        <div class="submenu-item" @click="handleMenu('3')">
-          <ToolOutlined />
-          <span>Tools Entry</span>
+        <div class="submenu-item" @click="toggleSubMenu('machines')" v-if="currentSubMenu !== 'machines'">
+          <DesktopOutlined />
+          <span>Machines</span>
         </div>
-        <div class="submenu-item" @click="handleMenu('4')">
-          <EyeOutlined />
-          <span>Tools View</span>
-        </div>
-        <div class="submenu-item" @click="handleMenu('1')">
-          <SettingOutlined />
-          <span>Settings</span>
+        <!-- Machine Options -->
+        <div v-if="currentSubMenu === 'machines'" class="machines-submenu">
+          <div class="submenu-item" @click="handleMenu('13')" v-if="userStore.userData.position === 'Admin'">
+            <PlusOutlined />
+            <span>Add Machine</span>
+          </div>
+          <div class="submenu-item" @click="handleMenu('14')">
+            <MinusOutlined />
+            <span>Delete Machine</span>
+          </div>
         </div>
       </div>
     </div>
@@ -465,9 +468,11 @@ import {
   LogoutOutlined,
   MoreOutlined,
   ToolOutlined,
+  DesktopOutlined,
 } from "@ant-design/icons-vue";
 
 const toolsStore = useUserStore();
+const userStore = useUserStore(); // Para validar permisos
 const router = useRouter();
 const isModalVisible = ref(false);
 const modalAction = ref('increase');
@@ -493,12 +498,27 @@ const updateScreenSize = () => {
 const currentSubMenu = ref(null);
 
 // Recupera la parte seleccionada desde el store
-const articulo = computed(() => toolsStore.PartsSeleccionado);
+const articulo = computed(() => {
+  const part = toolsStore.PartsSeleccionado;
+  if (part) {
+    console.log("Part data in PartsDetalles:", part);
+    console.log("Part model field:", part.model);
+    console.log("Part cuantiti field:", part.cuantiti);
+  }
+  return part;
+});
 
 // Modal title based on action
 const modalTitle = computed(() => {
   return modalAction.value === 'increase' ? 'Add Stock to Inventory' : 'Remove Stock from Inventory';
 });
+
+// Helper function to get quantity from part (handles both model and cuantiti fields)
+const getPartQuantity = (part) => {
+  if (!part) return 0;
+  // Prioritize 'model' field, fallback to 'cuantiti' for backwards compatibility
+  return part.model !== undefined ? part.model : (part.cuantiti || 0);
+};
 
 // Color function for quantity
 const getQuantityColor = (quantity) => {
@@ -639,7 +659,16 @@ const showAllImages = () => {
 
 // Navigation functions (same as home.vue)
 const toggleSubMenu = (menu) => {
-  currentSubMenu.value = currentSubMenu.value === menu ? null : menu;
+  if (menu === 'machines' && currentSubMenu.value === 'more') {
+    // Si estamos en el menú 'more' y hacemos clic en 'machines', mostramos las opciones de máquinas
+    currentSubMenu.value = 'machines';
+  } else if (currentSubMenu.value === menu) {
+    // Si el menú actual es el mismo, lo cerramos
+    currentSubMenu.value = null;
+  } else {
+    // Abrimos el nuevo menú
+    currentSubMenu.value = menu;
+  }
 };
 
 // Breadcrumbs (copied from home.vue)
@@ -1805,6 +1834,24 @@ onUnmounted(() => {
 .submenu-item:hover .anticon {
   color: white;
   transform: scale(1.2);
+}
+
+/* Machines Submenu */
+.machines-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  grid-column: 1 / -1; /* Ocupa todo el ancho del grid */
+}
+
+.machines-submenu .submenu-item {
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.machines-submenu .submenu-item:hover {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
 }
 
 /* Responsive adjustments */
