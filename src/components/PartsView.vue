@@ -86,16 +86,17 @@
           </a-select>
         </a-col>
         
-        <a-col :xs="24" :sm="12" :md="4">
+        <a-col :xs="0" :sm="0" :md="4">
           <a-button 
             type="primary" 
             size="large" 
             @click="exportToExcel"
             :loading="exportingExcel"
-            class="export-button"
+            :disabled="exportBlocked"
+            class="export-button desktop-only"
           >
             <DownloadOutlined />
-            Export Excel
+            {{ exportBlocked ? 'Please wait...' : 'Export Excel' }}
           </a-button>
         </a-col>
         
@@ -191,7 +192,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref, watch } from "vue";
+import { onMounted, onUnmounted, computed, ref, watch } from "vue";
 import { useUserStore } from "../stores/user.js";
 import { useRouter } from "vue-router";
 import { message, Empty } from "ant-design-vue";
@@ -212,6 +213,7 @@ import {
   SettingOutlined,
   AppstoreOutlined,
   DownloadOutlined,
+  MoreOutlined,
 } from "@ant-design/icons-vue";
 
 const toolsStore = useUserStore();
@@ -222,6 +224,7 @@ const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
 const searchText = ref("");
 const selectedLocation = ref(undefined);
 const exportingExcel = ref(false);
+const exportBlocked = ref(false);
 
 // Table columns
 const columns = [
@@ -342,8 +345,15 @@ const addNewPart = () => {
 };
 
 const exportToExcel = async () => {
+  // Prevent multiple simultaneous exports
+  if (exportingExcel.value || exportBlocked.value) {
+    message.warning('Export already in progress, please wait...');
+    return;
+  }
+
   try {
     exportingExcel.value = true;
+    exportBlocked.value = true;
     message.loading({ content: 'Preparing Excel export...', key: 'excel-export' });
 
     // Create a new workbook and worksheet
@@ -451,6 +461,11 @@ const exportToExcel = async () => {
     });
   } finally {
     exportingExcel.value = false;
+    
+    // Block button for 3 seconds to prevent multiple downloads
+    setTimeout(() => {
+      exportBlocked.value = false;
+    }, 3000);
   }
 };
 
@@ -482,6 +497,22 @@ onMounted(async () => {
   } catch (error) {
     message.error('Failed to load parts data');
   }
+
+  // Listen for export messages from navigation
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'exportToExcel') {
+      exportToExcel();
+    }
+  });
+});
+
+onUnmounted(() => {
+  // Clean up event listener
+  window.removeEventListener('message', (event) => {
+    if (event.data && event.data.type === 'exportToExcel') {
+      exportToExcel();
+    }
+  });
 });
 
 // Watch for changes in parts data to ensure reactivity
@@ -656,13 +687,25 @@ watch(() => parts.value.length, (newLength) => {
   width: 100%;
 }
 
-.export-button:hover:not(.ant-btn-loading) {
+.export-button:hover:not(.ant-btn-loading):not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
 }
 
 .export-button:focus {
   box-shadow: 0 0 0 3px rgba(82, 196, 26, 0.2);
+}
+
+.export-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #999 0%, #bbb 100%);
+  box-shadow: none;
+  transform: none;
+}
+
+.export-button.desktop-only {
+  display: block;
 }
 
 .header-actions {
@@ -742,6 +785,11 @@ watch(() => parts.value.length, (newLength) => {
 .modern-table :deep(.ant-table-tbody > tr > td) {
   border-bottom: 1px solid #f0f2f5;
   vertical-align: top;
+  padding: 16px 12px !important;
+}
+
+.modern-table :deep(.ant-table-tbody > tr) {
+  margin-bottom: 4px;
 }
 
 .modern-table :deep(.ant-table-tbody > tr:hover > td) {
@@ -756,12 +804,17 @@ watch(() => parts.value.length, (newLength) => {
   background: rgba(102, 126, 234, 0.04) !important;
 }
 
+/* Add spacing between table rows */
+.modern-table :deep(.ant-table-tbody) {
+  border-spacing: 0 4px;
+}
+
 /* Table Cell Styles */
 .avatar-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 0;
+  padding: 8px 0;
 }
 
 .part-avatar {
@@ -958,6 +1011,10 @@ watch(() => parts.value.length, (newLength) => {
   
   .header-content {
     padding: 24px 20px;
+  }
+
+  .export-button.desktop-only {
+    display: none !important;
   }
   
   .page-title {

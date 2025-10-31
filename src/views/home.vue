@@ -40,6 +40,11 @@
             <span>Fans</span>
           </a-menu-item>
 
+          <a-menu-item key="1" @click="handleMenu('1')">
+            <SettingOutlined />
+            <span>Settings</span>
+          </a-menu-item>
+
           <a-sub-menu>
             <template #title>
               <span>
@@ -136,7 +141,7 @@
             <component :is="selectedComponent" />
           </div>
         </a-layout-content>
-        <a-layout-footer style="text-align: center">V1.0.4</a-layout-footer>
+        <a-layout-footer class="desktop-footer">AccurateBox v0.0.1</a-layout-footer>
       </a-layout>
     </a-layout>
 
@@ -186,6 +191,10 @@
         <!-- Expanded Menu -->
         <div v-if="currentSubMenu === 'more'" class="modern-submenu">
           <div class="submenu-content">
+            <div class="submenu-item" @click="exportPartsToExcel" v-if="selectedComponent === PartsView" :class="{ 'disabled': exportBlocked }">
+              <DownloadOutlined />
+              <span>{{ exportBlocked ? 'Please wait...' : 'Export to Excel' }}</span>
+            </div>
             <div class="submenu-item" @click="toggleSubMenu('machines')" v-if="currentSubMenu !== 'machines'">
               <DesktopOutlined />
               <span>Machines</span>
@@ -203,6 +212,11 @@
             </div>
           </div>
         </div>
+      </div>
+      
+      <!-- Mobile Version Footer -->
+      <div class="mobile-footer">
+        <span class="mobile-version">AccurateBox v0.0.1</span>
       </div>
     </div>
   </div>
@@ -225,6 +239,7 @@ import {
   MinusOutlined,
   BoxPlotOutlined,
   MoreOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons-vue";
 import Setting from "../components/SettinsComponent.vue";
 import Entry from "../components/Entry.vue";
@@ -255,6 +270,7 @@ const menu = useMenuStore();
 const selectedComponent = shallowRef(Setting);
 const collapsed = ref(false);
 const selectedKeys = ref(["1"]);
+const exportBlocked = ref(false);
 
 const isMenuItemVisible = computed(() => {
   const positions = ["Admin", "QA"];
@@ -466,9 +482,46 @@ const toggleSubMenu = (menu) => {
     currentSubMenu.value = menu;
   }
 };
+
+const exportPartsToExcel = () => {
+  // Prevent multiple simultaneous exports
+  if (exportBlocked.value) {
+    return;
+  }
+
+  // Send message to PartsView component to trigger Excel export
+  if (selectedComponent.value === PartsView) {
+    // Block further clicks for 3 seconds
+    exportBlocked.value = true;
+    setTimeout(() => {
+      exportBlocked.value = false;
+    }, 3000);
+
+    // Close the submenu
+    currentSubMenu.value = null;
+    
+    // Send a custom event to trigger the export
+    window.postMessage({ 
+      type: 'exportToExcel', 
+      source: 'navigation' 
+    }, '*');
+  }
+};
 </script>
 
 <style scoped>
+/* Desktop Footer Styles */
+.desktop-footer {
+  text-align: center !important;
+  background: transparent !important;
+  border-top: none !important;
+  color: #666666 !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  padding: 12px 24px !important;
+  box-shadow: none !important;
+}
+
 #components-layout-demo-side .logo {
   height: 32px;
   margin: 16px;
@@ -486,7 +539,27 @@ const toggleSubMenu = (menu) => {
 .mobile-container {
   position: relative;
   min-height: 100vh;
-  padding-bottom: 90px; /* Space for navigation bar */
+  padding-bottom: 130px; /* Space for navigation bar and footer */
+}
+
+.mobile-footer {
+  position: fixed;
+  bottom: 80px; /* Above the navigation bar */
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 9998;
+}
+
+.mobile-version {
+  font-size: 12px;
+  color: #666666;
+  font-weight: 500;
+  text-shadow: none;
 }
 
 .mobile-nav-container {
@@ -711,6 +784,20 @@ const toggleSubMenu = (menu) => {
 .submenu-item:hover .anticon {
   color: white;
   transform: scale(1.2);
+}
+
+.submenu-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.submenu-item.disabled span {
+  color: #999 !important;
+}
+
+.submenu-item.disabled .anticon {
+  color: #999 !important;
 }
 
 /* Machines Submenu */
