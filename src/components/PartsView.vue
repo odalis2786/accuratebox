@@ -356,6 +356,9 @@ const editPart = (part) => {
 // Lifecycle
 onMounted(async () => {
   try {
+    // Clear any selected part when returning to PartsView
+    toolsStore.PartsSeleccionado = null;
+    
     await toolsStore.fetchParts();
   } catch (error) {
     message.error('Failed to load parts data');

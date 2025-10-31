@@ -8,9 +8,10 @@ export const useMenuStore = defineStore("menu", {
   actions: {
     setSelectedKey(key) {
       console.log("SetSelectKey Llamado Valor anteriro:", this.selectedKey);
-
+      console.log("Setting new key:", key);
       this.selectedKey = key;
-      console.log("Valor Actual", this.selectedKey);
+      console.log("Valor Actual despues del cambio:", this.selectedKey);
+      console.log("Store state after change:", this.$state);
     },
   },
 });

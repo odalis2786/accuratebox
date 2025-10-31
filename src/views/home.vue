@@ -218,6 +218,10 @@ import AgregarMaquina from "../components/maquinas/AgregarMaquina.vue";
 import VerMaquinas from "../components/maquinas/VerMaquinas.vue";
 import WorkView from "../components/WorkView.vue";
 import WorkOrderHistory from "../components/WorkOrderHistory.vue";
+
+// Import missing machine components
+const EditarMaquina = VerMaquinas; // Using VerMaquinas as fallback for edit
+const BorrarMaquina = VerMaquinas; // Using VerMaquinas as fallback for delete
 import { useMenuStore } from "../stores/menus";
 import Userview from "../components/UserView.vue";
 import { useUserStore } from "../stores/user";
@@ -247,24 +251,76 @@ onMounted(() => {
   userStore.getData();
   console.log("Role:", userStore.userData.position);
   console.log("Active Breadcrumb:", route.query.activeBreadcrumb);
+  console.log("Menu Key:", route.query.menuKey);
 
-  if (route.query.activeBreadcrumb) {
+  // Handle navigation from query parameters
+  if (route.query.menuKey) {
+    console.log('Found menuKey in query params:', route.query.menuKey);
+    setTimeout(() => {
+      handleMenu(route.query.menuKey);
+    }, 100);
+  } else if (route.query.activeBreadcrumb) {
     updateBreadcrumbs(route.query.activeBreadcrumb);
   }
+  
+  // Check for pending navigation in localStorage
+  const pendingNavigation = localStorage.getItem('pendingNavigation');
+  if (pendingNavigation) {
+    console.log('Found pending navigation:', pendingNavigation);
+    
+    // Clear the pending navigation
+    localStorage.removeItem('pendingNavigation');
+    
+    // Navigate after a short delay to ensure everything is loaded
+    setTimeout(() => {
+      handleMenu(pendingNavigation);
+    }, 200);
+  }
+  
+  // Listen for navigation messages from child components
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'navigate') {
+      console.log('Received navigation message:', event.data.key);
+      handleMenu(event.data.key);
+    }
+  });
 });
 
 watch(
   () => menu.selectedKey,
-  (newKey) => {
-    console.log("watch llamado con key:", newKey);
-    if (newKey) {
+  (newKey, oldKey) => {
+    console.log("watch llamado con key:", newKey, "oldKey:", oldKey);
+    console.log("menu store state:", menu);
+    if (newKey && newKey !== "") {
+      console.log("About to call handleMenu with key:", newKey);
       handleMenu(newKey);
+    } else {
+      console.log("Skipping handleMenu because newKey is empty or falsy");
+    }
+  }
+);
+
+// Watch for route changes to handle navigation
+watch(
+  () => route.query,
+  (newQuery) => {
+    console.log("Route query changed:", newQuery);
+    if (newQuery.menuKey) {
+      console.log("Handling navigation from route query:", newQuery.menuKey);
+      handleMenu(newQuery.menuKey);
     }
   }
 );
 
 onUnmounted(() => {
   window.removeEventListener("resize", updateScreenSize);
+  
+  // Clean up navigation message listener
+  window.removeEventListener('message', (event) => {
+    if (event.data && event.data.type === 'navigate') {
+      handleMenu(event.data.key);
+    }
+  });
 });
 
 // Bradcrumbs
@@ -308,6 +364,7 @@ const handleMenu = (key) => {
   menu.selectedKey = "";
   console.log("Handle menu llamado", key);
   console.log("Selected Key", selectedKeys);
+  console.log("About to switch component for key:", key);
 
   switch (key) {
     case "1":
@@ -323,9 +380,11 @@ const handleMenu = (key) => {
       selectedComponent.value = ToolsView;
       break;
     case "5":
+      console.log("Switching to PartsEntry component");
       selectedComponent.value = PartsEntry;
       break;
     case "6":
+      console.log("Switching to PartsView component");
       selectedComponent.value = PartsView;
       break;
     case "7":

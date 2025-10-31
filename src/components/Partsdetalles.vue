@@ -150,14 +150,10 @@
         </div>
         
         <div class="details-grid">
-          <div class="detail-row">
-            <div class="detail-label">
-              <IdcardOutlined class="detail-icon" />
-              Part ID
-            </div>
-            <div class="detail-value">{{ articulo.id }}</div>
-          </div>
           
+          
+          
+
           <div class="detail-row">
             <div class="detail-label">
               <TagOutlined class="detail-icon" />
@@ -223,7 +219,7 @@
 
 
 
-  <!-- Empty State -->
+  <!-- Empty State - Only show if we're not navigating back -->
   <div v-else class="empty-state">
     <a-card class="empty-card" :bordered="false">
       <a-empty 
@@ -384,11 +380,29 @@
       </div>
     </div>
   </a-modal>
+
+  <!-- Mobile Navigation Bar (same as home.vue) -->
+  <div v-if="!isLargeScreen">
+    <div class="floating-menu">
+      <a-button type="link" @click="toggleSubMenu('shop')">
+        <ShopOutlined />
+      </a-button>
+      <a-button type="link" @click="LogoOut()">
+        <LogoutOutlined />
+      </a-button>
+    </div>
+    
+    <div v-if="currentSubMenu === 'shop'" class="submenu">
+      <a-button type="link" @click="() => { console.log('Parts Entry button clicked'); handleMenu('5'); }">Parts Entry</a-button>
+      <a-button type="link" @click="() => { console.log('Parts View button clicked'); handleMenu('6'); }">Parts View</a-button>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useUserStore } from "@/stores/user.js";
+import { useMenuStore } from "@/stores/menus.js";
 import { useRouter } from "vue-router";
 import { Modal, Input, message, Empty } from "ant-design-vue";
 import {
@@ -406,6 +420,8 @@ import {
   LeftOutlined,
   RightOutlined,
   DownloadOutlined,
+  ShopOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons-vue";
 
 const toolsStore = useUserStore();
@@ -422,6 +438,16 @@ const allImagesModalVisible = ref(false);
 const currentImage = ref('');
 const currentImageIndex = ref(0);
 const imageLoading = ref(false);
+
+// Responsive design
+const isLargeScreen = ref(window.innerWidth > 768);
+
+const updateScreenSize = () => {
+  isLargeScreen.value = window.innerWidth > 768;
+};
+
+// Navigation state (same as home.vue)
+const currentSubMenu = ref(null);
 
 // Recupera la parte seleccionada desde el store
 const articulo = computed(() => toolsStore.PartsSeleccionado);
@@ -440,9 +466,13 @@ const getQuantityColor = (quantity) => {
   return 'green';
 };
 
-// Redirige al usuario a la vista anterior
+// Redirige al usuario a PartsView
 const goBack = () => {
-  router.go(-1);
+  console.log('goBack function called - navigating to Parts View using router');
+  // Clear the selected part when going back
+  toolsStore.PartsSeleccionado = null;
+  // Navigate to home with Parts View active
+  router.push({ path: '/home', query: { activeBreadcrumb: 'Parts View', menuKey: '6' } });
 };
 
 const showModal = (action) => {
@@ -563,6 +593,104 @@ const downloadImage = () => {
 const showAllImages = () => {
   allImagesModalVisible.value = true;
 };
+
+// Navigation functions (same as home.vue)
+const toggleSubMenu = (menu) => {
+  currentSubMenu.value = currentSubMenu.value === menu ? null : menu;
+};
+
+// Breadcrumbs (copied from home.vue)
+const breadcrumbs = ref([{ name: "Home", key: "home" }]);
+
+const breadcrumbNames = {
+  1: "Settings",
+  2: "Rfid Entry",
+  3: "Tools Entry",
+  4: "Tools View",
+  5: "Parts Entry",
+  6: "Parts View",
+  7: "Work Entry",
+  8: "Work View",
+  9: "Work Completed",
+  10: "Create Task",
+  11: "Mechanic Work View",
+  12: "Mechanic Work Completed",
+  13: "Add Machines",
+  14: "Delete Machines",
+  15: "Edit Machines",
+  16: "View Machines",
+  17: "CoolRoom",
+  18: "Fans",
+};
+
+const updateBreadcrumbs = (breadcrumb) => {
+  breadcrumbs.value = [
+    { name: "Home", key: "home" },
+    { name: breadcrumb, key: breadcrumb },
+  ];
+};
+
+const handleMenu = (key) => {
+  updateBreadcrumbs(breadcrumbNames[key]);
+  const menuStore = useMenuStore();
+  menuStore.selectedKey = "";
+  console.log("Handle menu llamado", key);
+  
+  // Clear the selected part when navigating away
+  toolsStore.PartsSeleccionado = null;
+  
+  // Close submenu after selection
+  currentSubMenu.value = null;
+
+  // Use the exact same logic as home.vue
+  switch (key) {
+    case "1":
+      // This won't work in this component, but we'll keep the structure
+      break;
+    case "2":
+      // Entry component
+      break;
+    case "3":
+      // Tools component
+      break;
+    case "4":
+      // ToolsView component
+      break;
+    case "5":
+      // Navigate to PartsEntry using router
+      console.log('Navigating to Parts Entry using router');
+      toolsStore.PartsSeleccionado = null;
+      router.push({ path: '/home', query: { activeBreadcrumb: 'Parts Entry', menuKey: '5' } });
+      break;
+    case "6":
+      // Navigate to PartsView using router
+      console.log('Navigating to Parts View using router');
+      toolsStore.PartsSeleccionado = null;
+      router.push({ path: '/home', query: { activeBreadcrumb: 'Parts View', menuKey: '6' } });
+      break;
+    case "7":
+      // WorkEntry component
+      break;
+    default:
+      // For any other case, try to trigger parent navigation
+      console.log('Sending postMessage for key:', key);
+      window.postMessage({ type: 'navigate', key: key }, '*');
+      break;
+  }
+};
+
+const LogoOut = () => {
+  toolsStore.logoutUser();
+};
+
+// Lifecycle hooks
+onMounted(() => {
+  window.addEventListener('resize', updateScreenSize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateScreenSize);
+});
 </script>
 
 <style scoped>
@@ -1423,6 +1551,44 @@ const showAllImages = () => {
   .thumbnail-image {
     width: 40px;
     height: 40px;
+  }
+}
+
+/* Mobile Navigation Bar (same styles as home.vue) */
+.floating-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+}
+
+.submenu {
+  position: fixed;
+  bottom: 50px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 9998;
+}
+
+/* Add padding to content to account for mobile nav */
+@media (max-width: 768px) {
+  .part-details-container {
+    padding-bottom: 80px;
+  }
+  
+  .empty-state {
+    padding-bottom: 80px;
   }
 }
 </style>
