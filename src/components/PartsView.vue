@@ -103,8 +103,8 @@
       </a-row>
     </a-card>
 
-    <!-- Parts Table -->
-    <a-card class="table-card" :bordered="false">
+    <!-- Desktop Table View -->
+    <a-card class="table-card desktop-only" :bordered="false">
       <a-table 
         :columns="columns" 
         :dataSource="filteredParts" 
@@ -138,9 +138,14 @@
           </template>
           
           <template v-if="column.key === 'name'">
-            <div class="name-cell-expanded">
-              <div class="part-name-main">{{ record.name }}</div>
-              <div class="part-description-main">{{ record.desc || 'No description' }}</div>
+            <div class="name-cell-responsive">
+              <!-- First Row: Part Name and Description -->
+              <div class="part-info-row">
+                <div class="part-name-main">{{ record.name }}</div>
+                <div class="part-description-main">{{ record.desc || 'No description available' }}</div>
+              </div>
+              
+              <!-- Second Row: Details (Quantity, Location, Machine) -->
               <div class="part-details-row">
                 <div class="detail-item">
                   <AppstoreOutlined class="detail-icon quantity-icon" />
@@ -154,8 +159,8 @@
                 </div>
                 <div class="detail-item">
                   <EnvironmentOutlined class="detail-icon location-icon" />
-                  <span class="detail-label">Location:</span>
-                  <span class="detail-value">{{ record.location || 'Not specified' }}</span>
+                  <span class="detail-label">Loc:</span>
+                  <span class="detail-value">{{ record.location || 'N/A' }}</span>
                 </div>
                 <div class="detail-item">
                   <SettingOutlined class="detail-icon machine-icon" />
@@ -190,6 +195,76 @@
         </template>
       </a-table>
     </a-card>
+
+    <!-- Mobile Card View -->
+    <div class="mobile-only">
+      <div class="mobile-parts-container" v-if="filteredParts.length > 0">
+        <div 
+          v-for="record in filteredParts" 
+          :key="record.id"
+          :class="`mobile-part-card quantity-card-${getQuantityColor(getPartQuantity(record))}`"
+        >
+          <div class="mobile-card-header">
+            <div class="mobile-avatar">
+              <a-avatar
+                v-if="record.imageUrls && record.imageUrls.length"
+                :src="record.imageUrls[0]"
+                :size="45"
+                class="part-avatar"
+              />
+              <a-avatar v-else :size="45" class="part-avatar default-avatar">
+                <BoxPlotOutlined />
+              </a-avatar>
+            </div>
+            <div class="mobile-part-info">
+              <div class="mobile-part-name">{{ record.name }}</div>
+              <div class="mobile-part-desc">{{ record.desc || 'No description available' }}</div>
+            </div>
+            <div class="mobile-quantity">
+              <a-tag 
+                :color="getQuantityColor(getPartQuantity(record))"
+                class="mobile-quantity-tag"
+              >
+                {{ getPartQuantity(record) }}
+              </a-tag>
+            </div>
+          </div>
+          
+          <div class="mobile-card-details">
+            <div class="mobile-detail-item">
+              <EnvironmentOutlined class="mobile-detail-icon" />
+              <span class="mobile-detail-text">{{ record.location || 'Location not specified' }}</span>
+            </div>
+            <div class="mobile-detail-item">
+              <SettingOutlined class="mobile-detail-icon" />
+              <span class="mobile-detail-text">{{ record.machine || 'General use' }}</span>
+            </div>
+          </div>
+          
+          <div class="mobile-card-actions">
+            <a-button 
+              type="primary" 
+              @click="viewDetails(record)"
+              class="mobile-view-btn"
+              block
+            >
+              <EyeOutlined /> View Details
+            </a-button>
+          </div>
+        </div>
+      </div>
+      
+      <a-empty 
+        v-else
+        description="No parts found"
+        :image="simpleImage"
+        class="mobile-empty"
+      >
+        <a-button type="primary" @click="addNewPart">
+          <PlusOutlined /> Add First Part
+        </a-button>
+      </a-empty>
+    </div>
   </div>
 </template>
 
@@ -249,6 +324,7 @@ const columns = [
     key: "actions",
     width: 100,
     align: 'center',
+    responsive: ['xs', 'sm', 'md', 'lg', 'xl'],
   },
 ];
 
@@ -830,6 +906,17 @@ watch(() => parts.value.length, (newLength) => {
   border-spacing: 0 12px !important;
 }
 
+/* Mobile specific table spacing */
+@media (max-width: 768px) {
+  .modern-table :deep(.ant-table-tbody) {
+    border-spacing: 0 8px !important;
+  }
+  
+  .modern-table :deep(.ant-table-tbody > tr) {
+    margin-bottom: 8px !important;
+  }
+}
+
 .modern-table :deep(.ant-table-container) {
   border: none !important;
 }
@@ -948,31 +1035,36 @@ watch(() => parts.value.length, (newLength) => {
   white-space: normal;
 }
 
-/* New expanded cell styles */
-.name-cell-expanded {
+/* Responsive cell styles for parts */
+.name-cell-responsive {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 8px;
+  gap: 12px;
+  padding: 8px;
   width: 100%;
   max-width: none;
+}
+
+.part-info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .part-name-main {
   font-weight: 600;
   color: #1f2937;
-  font-size: 16px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.3;
   margin: 0;
   word-break: break-word;
 }
 
 .part-description-main {
   color: #6b7280;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.4;
   margin: 0;
-  width: 100%;
   word-break: break-word;
   white-space: normal;
   display: block;
@@ -980,11 +1072,11 @@ watch(() => parts.value.length, (newLength) => {
 
 .part-details-row {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #f0f2f5;
+  border-top: 1px solid #e5e7eb;
 }
 
 .detail-item {
@@ -1141,40 +1233,75 @@ watch(() => parts.value.length, (newLength) => {
   }
   
   .modern-table :deep(.ant-table-thead > tr > th:last-child) {
-    width: 80px !important;
+    width: 90px !important;
+    min-width: 90px !important;
   }
   
   .modern-table :deep(.ant-table-tbody > tr > td) {
-    padding: 12px 8px;
+    padding: 12px 6px;
     vertical-align: top;
   }
   
-  .name-cell-expanded {
-    padding: 8px 4px;
+  .modern-table :deep(.ant-table-tbody > tr > td:last-child) {
+    padding: 12px 8px !important;
+    width: 90px !important;
+    min-width: 90px !important;
+  }
+  
+  .name-cell-responsive {
+    padding: 6px 4px;
+    gap: 8px;
   }
   
   .part-name-main {
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1.2;
   }
   
   .part-description-main {
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.3;
   }
   
   .part-details-row {
-    gap: 6px;
+    flex-direction: column;
+    gap: 4px;
     margin-top: 6px;
     padding-top: 6px;
   }
   
   .detail-item {
-    font-size: 11px;
-    padding: 3px 0;
+    font-size: 10px;
+    padding: 2px 0;
+    gap: 4px;
   }
   
   .detail-icon {
-    font-size: 12px;
+    font-size: 11px;
+  }
+  
+  .detail-label {
+    font-weight: 500;
+    min-width: auto;
+  }
+  
+  .quantity-tag-inline {
+    font-size: 10px !important;
+    padding: 0 6px !important;
+    line-height: 18px !important;
+  }
+  
+  /* Mobile button adjustments */
+  .action-btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+    min-width: 70px !important;
+  }
+  
+  .action-btn .anticon {
+    font-size: 12px !important;
+    margin-right: 4px !important;
   }
 }
 
@@ -1191,6 +1318,71 @@ watch(() => parts.value.length, (newLength) => {
   
   .stat-number {
     font-size: 20px;
+  }
+  
+  /* Ultra compact layout for very small screens */
+  .name-cell-responsive {
+    padding: 4px 2px;
+    gap: 6px;
+  }
+  
+  .part-name-main {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  
+  .part-description-main {
+    font-size: 10px;
+    color: #9ca3af;
+  }
+  
+  .part-details-row {
+    gap: 3px;
+    padding-top: 4px;
+  }
+  
+  .detail-item {
+    font-size: 9px;
+    padding: 1px 0;
+  }
+  
+  .detail-label {
+    display: none; /* Hide labels on very small screens */
+  }
+  
+  .detail-value {
+    font-size: 9px;
+    color: #6b7280;
+  }
+  
+  .quantity-tag-inline {
+    font-size: 9px !important;
+    padding: 0 4px !important;
+    line-height: 16px !important;
+  }
+  
+  .modern-table :deep(.ant-table-tbody > tr > td) {
+    padding: 8px 4px !important;
+  }
+  
+  .modern-table :deep(.ant-table-tbody > tr > td:last-child) {
+    padding: 8px 6px !important;
+    width: 85px !important;
+    min-width: 85px !important;
+  }
+  
+  /* Ultra compact button for very small screens */
+  .action-btn {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    height: 24px !important;
+    min-width: 60px !important;
+    border-radius: 4px !important;
+  }
+  
+  .action-btn .anticon {
+    font-size: 10px !important;
+    margin-right: 2px !important;
   }
 }
 
@@ -1284,5 +1476,194 @@ watch(() => parts.value.length, (newLength) => {
 .ant-input:focus {
   border-color: #667eea !important;
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Responsive Design Classes */
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+/* Mobile Parts Cards */
+.mobile-parts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+}
+
+.mobile-part-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.mobile-part-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mobile-avatar {
+  flex-shrink: 0;
+}
+
+.mobile-part-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-part-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 16px;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.mobile-part-desc {
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.mobile-quantity {
+  flex-shrink: 0;
+}
+
+.mobile-quantity-tag {
+  font-weight: 600;
+  font-size: 14px !important;
+  padding: 4px 12px !important;
+  border-radius: 6px !important;
+}
+
+.mobile-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.mobile-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.mobile-detail-icon {
+  color: #9ca3af;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.mobile-detail-text {
+  flex: 1;
+  color: #374151;
+  font-weight: 500;
+}
+
+.mobile-card-actions {
+  margin-top: 8px;
+}
+
+.mobile-view-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  height: 40px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.mobile-view-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.mobile-empty {
+  margin-top: 40px;
+}
+
+/* Quantity-based card colors for mobile */
+.quantity-card-red {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #fca5a5;
+  border-left: 4px solid #ef4444;
+}
+
+.quantity-card-orange {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fbbf24;
+  border-left: 4px solid #f59e0b;
+}
+
+.quantity-card-blue {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #93c5fd;
+  border-left: 4px solid #3b82f6;
+}
+
+.quantity-card-green {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #86efac;
+  border-left: 4px solid #10b981;
+}
+
+/* Mobile Responsive Breakpoints */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-part-card {
+    padding: 12px;
+  }
+  
+  .mobile-card-header {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .mobile-part-name {
+    font-size: 15px;
+  }
+  
+  .mobile-part-desc {
+    font-size: 12px;
+  }
+  
+  .mobile-detail-item {
+    font-size: 12px;
+  }
+  
+  .mobile-view-btn {
+    height: 36px;
+    font-size: 14px;
+  }
 }
 </style>
