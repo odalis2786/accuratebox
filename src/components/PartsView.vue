@@ -86,6 +86,18 @@
           </a-select>
         </a-col>
         
+        <a-col :xs="24" :sm="12" :md="4">
+          <a-button 
+            type="primary" 
+            size="large" 
+            @click="exportToExcel"
+            :loading="exportingExcel"
+            class="export-button"
+          >
+            <DownloadOutlined />
+            Export Excel
+          </a-button>
+        </a-col>
         
       </a-row>
     </a-card>
@@ -183,6 +195,7 @@ import { onMounted, computed, ref, watch } from "vue";
 import { useUserStore } from "../stores/user.js";
 import { useRouter } from "vue-router";
 import { message, Empty } from "ant-design-vue";
+import * as ExcelJS from 'exceljs';
 import {
   UserOutlined,
   DatabaseOutlined,
@@ -198,6 +211,7 @@ import {
   EditOutlined,
   SettingOutlined,
   AppstoreOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons-vue";
 
 const toolsStore = useUserStore();
@@ -207,6 +221,7 @@ const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
 // Reactive data
 const searchText = ref("");
 const selectedLocation = ref(undefined);
+const exportingExcel = ref(false);
 
 // Table columns
 const columns = [
@@ -324,6 +339,119 @@ const refreshData = async () => {
 const addNewPart = () => {
   // Navigate to add part component
   router.push({ name: 'PartsEntry' }); // Navigate to PartsEntry component
+};
+
+const exportToExcel = async () => {
+  try {
+    exportingExcel.value = true;
+    message.loading({ content: 'Preparing Excel export...', key: 'excel-export' });
+
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Parts Inventory');
+
+    // Set worksheet properties
+    worksheet.properties.defaultRowHeight = 25;
+
+    // Define columns
+    worksheet.columns = [
+      { header: 'Part Name', key: 'name', width: 25 },
+      { header: 'Description', key: 'description', width: 35 },
+      { header: 'Location', key: 'location', width: 20 },
+      { header: 'Machine', key: 'machine', width: 20 },
+      { header: 'Quantity', key: 'quantity', width: 15 },
+      { header: 'Date Added', key: 'dateAdded', width: 20 },
+    ];
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '667eea' }
+    };
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    headerRow.height = 35;
+
+    // Add data rows
+    filteredParts.value.forEach((part, index) => {
+      const row = worksheet.addRow({
+        name: part.name || 'N/A',
+        description: part.desc || 'No description',
+        location: part.location || 'Not specified',
+        machine: part.machine || 'General',
+        quantity: getPartQuantity(part),
+        dateAdded: part.createdAt ? new Date(part.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'
+      });
+
+      // Style alternating rows
+      if (index % 2 === 0) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'F8F9FA' }
+        };
+      }
+
+      // Center align quantity column
+      row.getCell('quantity').alignment = { horizontal: 'center' };
+    });
+
+    // Add borders to all cells
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'E9ECEF' } },
+          left: { style: 'thin', color: { argb: 'E9ECEF' } },
+          bottom: { style: 'thin', color: { argb: 'E9ECEF' } },
+          right: { style: 'thin', color: { argb: 'E9ECEF' } }
+        };
+      });
+    });
+
+    // Add summary at the bottom
+    const summaryRowIndex = worksheet.rowCount + 2;
+    worksheet.getCell(`A${summaryRowIndex}`).value = 'SUMMARY';
+    worksheet.getCell(`A${summaryRowIndex}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`A${summaryRowIndex + 1}`).value = `Total Parts: ${totalParts.value}`;
+    worksheet.getCell(`A${summaryRowIndex + 2}`).value = `Total Quantity: ${totalQuantity.value}`;
+    worksheet.getCell(`A${summaryRowIndex + 3}`).value = `Unique Locations: ${uniqueLocations.value}`;
+
+    // Generate filename with current date
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = `Parts_Inventory_${currentDate}.xlsx`;
+
+    // Write to buffer and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+
+    // Cleanup
+    window.URL.revokeObjectURL(url);
+    
+    message.success({ 
+      content: `Excel file exported successfully! (${filteredParts.value.length} parts)`, 
+      key: 'excel-export' 
+    });
+
+  } catch (error) {
+    console.error('Error exporting to Excel:', error);
+    message.error({ 
+      content: 'Failed to export Excel file', 
+      key: 'excel-export' 
+    });
+  } finally {
+    exportingExcel.value = false;
+  }
 };
 
 const viewDetails = (part) => {
@@ -516,6 +644,25 @@ watch(() => parts.value.length, (newLength) => {
 
 .filter-select {
   border-radius: 8px;
+}
+
+.export-button {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(82, 196, 26, 0.2);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.export-button:hover:not(.ant-btn-loading) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+}
+
+.export-button:focus {
+  box-shadow: 0 0 0 3px rgba(82, 196, 26, 0.2);
 }
 
 .header-actions {

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="boxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="8" cy="8" r="7.5" fill="url(#boxGradient)"/>
+  
+  <!-- Simplified box icon for small size -->
+  <path d="M4 6L8 4L12 6V11L8 13L4 11V6Z" fill="none" stroke="#ffffff" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M4 6L8 8L12 6" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 8V13" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/>
+  
+  <!-- Small checkmark -->
+  <circle cx="11" cy="5" r="1.5" fill="#52c41a"/>
+  <path d="M10.25 5L10.75 5.5L11.75 4.5" stroke="#ffffff" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

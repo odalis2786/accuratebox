@@ -1,0 +1,21 @@
+{
+  "name": "AccurateBox - Parts Inventory Management",
+  "short_name": "AccurateBox",
+  "description": "Professional parts inventory management system for workshops and businesses",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff"
+}

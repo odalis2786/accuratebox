@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="boxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background with rounded corners for iOS -->
+  <rect width="180" height="180" rx="40" fill="url(#boxGradient)"/>
+  
+  <!-- Box icon (scaled up) -->
+  <path d="M45 67.5L90 45L135 67.5V123.75L90 146.25L45 123.75V67.5Z" fill="none" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M45 67.5L90 90L135 67.5" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M90 90V146.25" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Checkmark for accuracy (scaled up) -->
+  <circle cx="123.75" cy="56.25" r="16.875" fill="#52c41a"/>
+  <path d="M115.3125 56.25L121.5 62.4375L132.1875 51.75" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
