@@ -52,8 +52,8 @@
 
       <a-form-item>
         <a-space>
-          <a-button type="default" @click="goBack">Volver</a-button>
-          <a-button type="primary" @click="onSubmit">Agregar Usuario</a-button>
+          <a-button type="default" @click="goBack">Back</a-button>
+          <a-button type="primary" @click="onSubmit">Add User</a-button>
         </a-space>
       </a-form-item>
     </a-form>

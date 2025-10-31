@@ -9,7 +9,7 @@
     <a-form-item label="Work Keys">
       <a-textarea v-model:value="formState.desc" />
     </a-form-item>
-    <a-form-item label="Comentario">
+    <a-form-item label="Comment">
       <a-textarea v-model:value="formState.comentario" />
     </a-form-item>
 
@@ -20,10 +20,10 @@
         <a-radio-button value="Diario">Diario</a-radio-button>
       </a-radio-group>
     </a-form-item>
-    <a-form-item label="Maquina" @click="showModal">
+    <a-form-item label="Machine" @click="showModal">
       <a-input-search
         v-model:value="formState.maquina"
-        placeholder="Seleccione una máquina"
+        placeholder="Select a machine"
         @click="showModal"
         readonly
       />
@@ -38,7 +38,7 @@
       </a-radio-group>
     </a-form-item>
 
-    <a-form-item label="Imágenes">
+    <a-form-item label="Images">
       <a-upload
         list-type="picture-card"
         multiple
@@ -47,7 +47,7 @@
         @change="handleChange"
       >
         <div>
-          <div style="margin-top: 8px">Subir</div>
+          <div style="margin-top: 8px">Upload</div>
         </div>
       </a-upload>
     </a-form-item>
@@ -61,14 +61,14 @@
         <template v-if="database.loading">
           <a-spin />
         </template>
-        <template v-else> Crear Orden </template>
+        <template v-else> Create Order </template>
       </a-button>
     </a-form-item>
 
     <!-- Modal for selecting machine -->
     <a-modal
       :open="isModalVisible"
-      title="Seleccione una máquina"
+      title="Select a machine"
       @ok="handleOk"
       @cancel="handleCancel"
     >

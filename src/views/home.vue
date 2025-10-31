@@ -105,14 +105,14 @@
               @click="handleMenu('13')"
               v-if="userStore.userData.position === 'Admin'"
             >
-              Agregar
+              Add
             </a-menu-item>
-            <a-menu-item key="16" @click="handleMenu('16')"> Ver</a-menu-item>
+            <a-menu-item key="16" @click="handleMenu('16')"> View</a-menu-item>
             <a-menu-item key="14" @click="handleMenu('14')">
-              Borrar</a-menu-item
+              Delete</a-menu-item
             >
             <a-menu-item key="15" @click="handleMenu('15')">
-              Editar</a-menu-item
+              Edit</a-menu-item
             >
           </a-sub-menu>
 
@@ -178,7 +178,7 @@
         >
       </div>
       <div v-if="currentSubMenu === 'mechanicWork'" class="submenu">
-        <a-button type="link" @click="handleMenu('10')">Crear tarea</a-button>
+        <a-button type="link" @click="handleMenu('10')">Create Task</a-button>
         <a-button type="link" @click="handleMenu('11')"
           >Work Order View</a-button
         >
@@ -280,15 +280,15 @@ const breadcrumbNames = {
   7: "Work Entry",
   8: "Work View",
   9: "Work Completed",
-  10: "Crear Tarea",
+  10: "Create Task",
   11: "Mechanic Work View",
   12: "Mechanic Work Completed",
-  13: "Agregar Maquinas",
-  14: "Borrar Maquinas",
-  15: "Editar Maquinas",
-  16: "Ver Maquinas",
+  13: "Add Machines",
+  14: "Delete Machines",
+  15: "Edit Machines",
+  16: "View Machines",
   17: "CoolRoom",
-  18: "Abanicos",
+  18: "Fans",
 };
 
 const updateBreadcrumbs = (breadcrumb) => {

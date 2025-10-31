@@ -26,7 +26,7 @@
               :max-count="1"
             >
               <a-button type="dashed" size="small" class="upload-btn">
-                <CameraOutlined /> Cambiar Foto
+                <CameraOutlined /> Change Photo
               </a-button>
             </a-upload>
             
@@ -39,18 +39,18 @@
               @click="handleUpload"
               class="update-btn"
             >
-              <CloudUploadOutlined /> {{ uploading ? "Subiendo..." : "Actualizar" }}
+              <CloudUploadOutlined /> {{ uploading ? "Uploading..." : "Update" }}
             </a-button>
           </div>
         </div>
 
         <div class="user-info">
-          <h2 class="user-name">{{ userStore.userData.nombre || 'Sin nombre' }}</h2>
+          <h2 class="user-name">{{ userStore.userData.nombre || 'No name set' }}</h2>
           <a-tag color="blue" class="user-role">
-            <TeamOutlined /> {{ userStore.userData.position || 'Sin posición' }}
+            <TeamOutlined /> {{ userStore.userData.position || 'No position set' }}
           </a-tag>
           <p class="user-email">
-            <MailOutlined /> {{ userStore.userData.email || 'Sin email' }}
+            <MailOutlined /> {{ userStore.userData.email || 'No email set' }}
           </p>
         </div>
       </div>
@@ -60,37 +60,37 @@
       <!-- Secciones editables organizadas en tabs -->
       <a-tabs v-model:activeKey="activeTab" type="card" class="profile-tabs">
         
-        <!-- Información Personal -->
-        <a-tab-pane key="personal" tab="Información Personal">
+        <!-- Personal Information -->
+        <a-tab-pane key="personal" tab="Personal Information">
           <div class="form-section">
             <a-space direction="vertical" :size="24" style="width: 100%">
               
-              <!-- Nombre -->
+              <!-- Name -->
               <div class="form-item">
                 <div class="form-label">
                   <UserOutlined class="label-icon" />
-                  <span>Nombre Completo</span>
+                  <span>Full Name</span>
                 </div>
                 <div class="form-content">
                   <div v-if="Editname" class="display-value">
-                    <span class="value-text">{{ userStore.userData.nombre || 'No especificado' }}</span>
+                    <span class="value-text">{{ userStore.userData.nombre || 'Not specified' }}</span>
                     <a-button type="link" @click="startEdit('name')" class="edit-btn">
-                      <EditOutlined /> Editar
+                      <EditOutlined /> Edit
                     </a-button>
                   </div>
                   <div v-else class="edit-form">
                     <a-input
                       v-model:value="Datos.name"
-                      placeholder="Ingresa tu nombre completo"
+                      placeholder="Enter your full name"
                       size="large"
                       class="edit-input"
                     />
                     <div class="form-actions">
                       <a-button type="primary" @click="Save('name')" size="small">
-                        <CheckOutlined /> Guardar
+                        <CheckOutlined /> Save
                       </a-button>
                       <a-button @click="cancelEdit('name')" size="small">
-                        <CloseOutlined /> Cancelar
+                        <CloseOutlined /> Cancel
                       </a-button>
                     </div>
                   </div>
@@ -101,29 +101,29 @@
               <div class="form-item">
                 <div class="form-label">
                   <MailOutlined class="label-icon" />
-                  <span>Correo Electrónico</span>
+                  <span>Email Address</span>
                 </div>
                 <div class="form-content">
                   <div v-if="EditEmail" class="display-value">
-                    <span class="value-text">{{ userStore.userData.email || 'No especificado' }}</span>
+                    <span class="value-text">{{ userStore.userData.email || 'Not specified' }}</span>
                     <a-button type="link" @click="startEdit('email')" class="edit-btn">
-                      <EditOutlined /> Editar
+                      <EditOutlined /> Edit
                     </a-button>
                   </div>
                   <div v-else class="edit-form">
                     <a-input
                       v-model:value="Datos.email"
-                      placeholder="Ingresa tu correo electrónico"
+                      placeholder="Enter your email address"
                       size="large"
                       type="email"
                       class="edit-input"
                     />
                     <div class="form-actions">
                       <a-button type="primary" @click="Save('email')" size="small">
-                        <CheckOutlined /> Guardar
+                        <CheckOutlined /> Save
                       </a-button>
                       <a-button @click="cancelEdit('email')" size="small">
-                        <CloseOutlined /> Cancelar
+                        <CloseOutlined /> Cancel
                       </a-button>
                     </div>
                   </div>
@@ -134,12 +134,12 @@
           </div>
         </a-tab-pane>
 
-        <!-- Seguridad -->
-        <a-tab-pane key="security" tab="Seguridad">
+        <!-- Security -->
+        <a-tab-pane key="security" tab="Security">
           <div class="form-section">
             <a-alert
-              message="Cambio de Contraseña"
-              description="Por tu seguridad, necesitamos verificar tu contraseña actual antes de establecer una nueva."
+              message="Password Change"
+              description="For your security, we need to verify your current password before setting a new one."
               type="info"
               show-icon
               class="security-alert"
@@ -150,12 +150,12 @@
               <div class="form-item">
                 <div class="form-label">
                   <LockOutlined class="label-icon" />
-                  <span>Contraseña Actual</span>
+                  <span>Current Password</span>
                 </div>
                 <div class="form-content">
                   <a-input-password
                     v-model:value="Datos.oldpassword"
-                    placeholder="Ingresa tu contraseña actual"
+                    placeholder="Enter your current password"
                     size="large"
                     class="password-input"
                   />
@@ -165,18 +165,18 @@
               <div class="form-item">
                 <div class="form-label">
                   <SafetyOutlined class="label-icon" />
-                  <span>Nueva Contraseña</span>
+                  <span>New Password</span>
                 </div>
                 <div class="form-content">
                   <a-input-password
                     v-model:value="Datos.newpassword"
-                    placeholder="Ingresa tu nueva contraseña"
+                    placeholder="Enter your new password"
                     size="large"
                     class="password-input"
                   />
                   <div class="password-strength">
                     <small class="password-hint">
-                      Mínimo 6 caracteres, incluye mayúsculas, minúsculas y símbolos
+                      Minimum 6 characters, include uppercase, lowercase and symbols
                     </small>
                   </div>
                 </div>
@@ -185,12 +185,12 @@
               <div class="form-item">
                 <div class="form-label">
                   <CheckCircleOutlined class="label-icon" />
-                  <span>Confirmar Contraseña</span>
+                  <span>Confirm Password</span>
                 </div>
                 <div class="form-content">
                   <a-input-password
                     v-model:value="Datos.repeatpassword"
-                    placeholder="Confirma tu nueva contraseña"
+                    placeholder="Confirm your new password"
                     size="large"
                     class="password-input"
                   />
@@ -205,7 +205,7 @@
                   :loading="userStore.loadingUser"
                   class="save-password-btn"
                 >
-                  <SafetyOutlined /> Actualizar Contraseña
+                  <SafetyOutlined /> Update Password
                 </a-button>
               </div>
 
@@ -335,12 +335,12 @@ const Save = async (field) => {
       await userStore.updateName(Datos.value.name);
       Editname.value = true;
       Datos.value.name = '';
-      message.success('Nombre actualizado correctamente');
+      message.success('Name updated successfully');
     } else if (field === "email" && validateEmail()) {
       await userStore.updateEmail(Datos.value.email);
       EditEmail.value = true;
       Datos.value.email = '';
-      message.success('Email actualizado correctamente');
+      message.success('Email updated successfully');
     } else if (field === "password") {
       const validationMessage = validatePassword(
         Datos.value.newpassword,
@@ -351,15 +351,15 @@ const Save = async (field) => {
         return false;
       } else {
         await userStore.updatePassword(Datos.value);
-        // Limpiar campos de contraseña después de actualizar
+        // Clear password fields after updating
         Datos.value.oldpassword = '';
         Datos.value.newpassword = '';
         Datos.value.repeatpassword = '';
-        message.success('Contraseña actualizada correctamente');
+        message.success('Password updated successfully');
       }
     }
   } catch (error) {
-    message.error(`Error al actualizar ${field}: ${error.message}`);
+    message.error(`Error updating ${field}: ${error.message}`);
   }
 };
 
