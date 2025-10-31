@@ -401,6 +401,7 @@ const toggleSubMenu = (menu) => {
   justify-content: space-around;
   padding: 10px 0;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
 }
 
 .submenu {
@@ -413,5 +414,6 @@ const toggleSubMenu = (menu) => {
   justify-content: space-around;
   padding: 10px 0;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 9998;
 }
 </style>
